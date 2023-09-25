@@ -1,0 +1,11 @@
+    if (passnum == 0)
+    {
+      passnum++;
+      oldfrag = Correl.frag[1];
+      return;
+    }
+
+    cout << "here?" << endl;
+    swapfrag = Correl.frag[1];
+    Correl.frag[1] = oldfrag;
+    oldfrag = swapfrag;
