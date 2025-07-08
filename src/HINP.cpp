@@ -102,8 +102,8 @@ bool HINP::unpackSi_HINP4(unsigned short *&point)
     unsigned short boardNum;
 
     //cout << "id " << id << endl;
-    cout << "chipNum " <<chipNum << endl;
-    cout << "chanNum " << chanNum << endl;
+    //cout << "chipNum " <<chipNum << endl;
+    //cout << "chanNum " << chanNum << endl;
     //cout << "ienergy " << ienergy << endl;
     //cout << "ilowenergy " << ilowenergy << endl;
     //cout << "itime " << itime << endl;
@@ -123,9 +123,9 @@ bool HINP::unpackSi_HINP4(unsigned short *&point)
       //chanNum = chanNum;
       boardNum = chipNum/2 + 1;
     }
-    cout << "  boardNum " << boardNum << endl;
-    cout << "  chanNum " << chanNum << endl;
-    cout << " " << endl;
+    //cout << "  boardNum " << boardNum << endl;
+    //cout << "  chanNum " << chanNum << endl;
+    //cout << " " << endl;
 
     
     //save information to arrays
