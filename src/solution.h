@@ -35,6 +35,12 @@ class solution
   float benergyR;
   float denergy;
   float denergyR;
+	float time;
+  float timeR;
+  float btime;
+  float btimeR;
+  float dtime;
+  float dtimeR; 
   int ifront;
   int iback;
   int ide;

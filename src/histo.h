@@ -192,6 +192,7 @@ public:
   TH1I * alphaE_gated;
   TH2I * deutE_gate_cosThetaH;
   TH2I * alphaE_gate_cosThetaH;
+	TH1I * react_origin_tdiff;
 
   //Li7
   TH1I * Erel_7Li_p6He;

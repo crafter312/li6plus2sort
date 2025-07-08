@@ -14,6 +14,13 @@ void solution::reset()
   benergy = -1;
   benergyR = -1;
   denergy = -1;
+	denergyR = -1;
+	time = -1;
+  timeR = -1;
+  btime = -1;
+  btimeR = -1;
+  dtime = -1;
+	dtimeR = -1;
   ifront = -1;
   iback = -1;
   ide = -1;

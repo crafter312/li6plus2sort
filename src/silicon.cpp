@@ -111,6 +111,9 @@ int silicon::simpleFront()
   Solution[0].benergyR = Back.Order[0].energyR;
   Solution[0].denergy = Delta.Order[0].energy;
   Solution[0].denergyR = Delta.Order[0].energyR;
+	Solution[0].time = Front.Order[0].time;
+  Solution[0].btime = Back.Order[0].time;
+  Solution[0].dtime = Delta.Order[0].time;
   Solution[0].ifront = Front.Order[0].strip;
   Solution[0].iback = Back.Order[0].strip;
   Solution[0].ide = Delta.Order[0].strip;
@@ -331,6 +334,7 @@ int silicon::multiHit()
       float timediff = Front.Order[i].time - Delta.Order[arrayD[i]].time;
       Solution[i].energy = Front.Order[i].energy;
       Solution[i].energyR = Front.Order[i].energyR;
+			Solution[i].time = Front.Order[i].time;
       Solution[i].denergy = Delta.Order[arrayD[i]].energy;
       Solution[i].ifront = Front.Order[i].strip;
       Solution[i].iback = Back.Order[arrayB[i]].strip;

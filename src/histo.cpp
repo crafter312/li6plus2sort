@@ -340,6 +340,8 @@ histo::histo()
   deutE_gate_cosThetaH = new TH2I("deutE_gate_cosThetaH","",200,0,35,100,-1,1);
   alphaE_gate_cosThetaH = new TH2I("alphaE_gate_cosThetaH","",200,0,35,100,-1,1);
 
+	react_origin_tdiff = new TH1I("react_origin_tdiff","",2000,-100,100);
+
   //Li7
 //p+6He
   dir7Li->cd();
