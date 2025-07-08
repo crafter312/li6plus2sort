@@ -32,8 +32,9 @@
 *.exe
 *.out
 *.app
+sort
 
 
 *.root
 *.*~
-numbers.*
+#numbers.*
