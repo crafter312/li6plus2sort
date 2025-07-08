@@ -8,7 +8,7 @@ SOURCE = Gobbi.cpp scalerBuf.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp soluti
 OBJECT = $(patsubst %, $(BIN)/%, $(notdir $(SOURCE:.cpp=.o)))
 
 CC = g++
-CFLAGS= -c -std=c++14 -I$(shell root-config --incdir)
+CFLAGS= -c -std=c++17 -I$(shell root-config --incdir)
 LINKOPTION = $(shell root-config --libs) 
 
 sort : $(BIN)/sort.o $(OBJECT)
