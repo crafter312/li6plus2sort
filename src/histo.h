@@ -83,6 +83,8 @@ public:
   TH2I * sumDeltaTime_cal;
   TH2I * FrontvsBack;
 
+  TH2I * sumFrontTimeMult1_cal;
+
   //Energies
   TH1I * FrontE_R[4][channum];
   TH1I * FrontElow_R[4][channum];
@@ -192,6 +194,7 @@ public:
   TH1I * alphaE_gated;
   TH2I * deutE_gate_cosThetaH;
   TH2I * alphaE_gate_cosThetaH;
+	TH1I * react_origin_tdiff;
 
   //Li7
   TH1I * Erel_7Li_p6He;

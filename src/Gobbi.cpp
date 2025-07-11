@@ -195,6 +195,7 @@ bool Gobbi::unpack(unsigned short *point)
     if (Silicon[id]->Front.Nstore ==1 && Silicon[id]->Back.Nstore ==1 && Silicon[id]->Delta.Nstore ==1)
     {
       totMulti += Silicon[id]->simpleFront();
+			Histo->sumFrontTimeMult1_cal->Fill(id*Histo->channum + Silicon[id]->Front.Order[0].strip, Silicon[id]->Front.Order[0].time);
       //cout << "simple " << totMulti << endl;
     }
     else //if higher multiplicity then worry about picking the right one
@@ -715,7 +716,17 @@ void Gobbi::corr_6Li()
     //cout << "Ex " << Ex_7Li << endl;
     Histo->Ex_7Li_ta_bad->Fill(Ex_7Li);
 
-
+		// ToF calculations, added by Henry Webb (h.s.webb@wustl.edu)
+		// This is used for quantifying neutron time resolution when
+		// using Gobbi as the reference for neutron ToF calculations
+		float deut_dist  = sqrt((Correl.frag[0]->Xpos*Correl.frag[0]->Xpos) + (Correl.frag[0]->Ypos*Correl.frag[0]->Ypos) + (Targetdist*Targetdist));
+		float alpha_dist = sqrt((Correl.frag[1]->Xpos*Correl.frag[1]->Xpos) + (Correl.frag[1]->Ypos*Correl.frag[1]->Ypos) + (Targetdist*Targetdist));
+		float deut_ToF   = deut_dist / Correl.frag[0]->velocity;
+		float alpha_ToF  = alpha_dist / Correl.frag[1]->velocity;
+		float time_deut  = deut_ToF + Correl.frag[0]->time; // Correl.frag[0].time is the E front time
+		float time_alpha = alpha_ToF + Correl.frag[1]->time;
+		float tdiff      = time_alpha - time_deut; // order shouldn't matter
+		Histo->react_origin_tdiff->Fill(tdiff);
   }
 }
 

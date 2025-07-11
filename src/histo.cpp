@@ -101,6 +101,9 @@ histo::histo()
   sumDeltaTime_cal = new TH2I("sumDeltaTime_cal","",4*channum,0,4*channum,512,0,16383);
   sumDeltaTime_cal->SetOption("colz");
 
+  sumFrontTimeMult1_cal = new TH2I("sumFrontTimeMult1_cal","",4*channum,0,4*channum,512,0,16383);
+  sumFrontTimeMult1_cal->SetOption("colz");
+
 
   FrontvsBack = new TH2I("FrontvsBack","",500,0,20,500,0,20);
 
@@ -339,6 +342,8 @@ histo::histo()
   alphaE_gated = new TH1I("alphaE_gated","",200,0,35);
   deutE_gate_cosThetaH = new TH2I("deutE_gate_cosThetaH","",200,0,35,100,-1,1);
   alphaE_gate_cosThetaH = new TH2I("alphaE_gate_cosThetaH","",200,0,35,100,-1,1);
+
+	react_origin_tdiff = new TH1I("react_origin_tdiff","",2000,-100,100);
 
   //Li7
 //p+6He
