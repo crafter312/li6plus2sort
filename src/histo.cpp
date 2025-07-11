@@ -101,6 +101,9 @@ histo::histo()
   sumDeltaTime_cal = new TH2I("sumDeltaTime_cal","",4*channum,0,4*channum,512,0,16383);
   sumDeltaTime_cal->SetOption("colz");
 
+  sumFrontTimeMult1_cal = new TH2I("sumFrontTimeMult1_cal","",4*channum,0,4*channum,512,0,16383);
+  sumFrontTimeMult1_cal->SetOption("colz");
+
 
   FrontvsBack = new TH2I("FrontvsBack","",500,0,20,500,0,20);
 

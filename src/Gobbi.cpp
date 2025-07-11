@@ -195,6 +195,7 @@ bool Gobbi::unpack(unsigned short *point)
     if (Silicon[id]->Front.Nstore ==1 && Silicon[id]->Back.Nstore ==1 && Silicon[id]->Delta.Nstore ==1)
     {
       totMulti += Silicon[id]->simpleFront();
+			Histo->sumFrontTimeMult1_cal->Fill(id*Histo->channum + Silicon[id]->Front.Order[0].strip, Silicon[id]->Front.Order[0].time);
       //cout << "simple " << totMulti << endl;
     }
     else //if higher multiplicity then worry about picking the right one

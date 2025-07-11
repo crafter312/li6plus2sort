@@ -83,6 +83,8 @@ public:
   TH2I * sumDeltaTime_cal;
   TH2I * FrontvsBack;
 
+  TH2I * sumFrontTimeMult1_cal;
+
   //Energies
   TH1I * FrontE_R[4][channum];
   TH1I * FrontElow_R[4][channum];
