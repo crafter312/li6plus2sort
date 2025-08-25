@@ -2,8 +2,6 @@
 #include <ROOT/TThreadedObject.hxx>
 #include <ROOT/TTreeProcessorMT.hxx>
 #include <TFile.h>
-#include <TGProgressBar.h>
-#include <TGFrame.h>
 #include <TTree.h>
 
 #include <iostream>

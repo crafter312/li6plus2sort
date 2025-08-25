@@ -13,7 +13,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_INSTALL_LIBDIR ${PROJECT_BINARY_DIR}/lib)
 
 # Set project sources
-set(SOURCES Gobbi.cpp scalerBuf.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp solution.cpp pid.cpp ZApar.cpp einstein.cpp losses.cpp loss2.cpp correl2.cpp parType.cpp calibrate.cpp)
+set(SOURCES Gobbi.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp solution.cpp pid.cpp ZApar.cpp einstein.cpp losses.cpp loss2.cpp correl2.cpp parType.cpp calibrate.cpp Input.cpp)
 
 list(TRANSFORM SOURCES PREPEND ${SRC}/)
 
