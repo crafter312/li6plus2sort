@@ -38,3 +38,9 @@ sort
 *.root
 *.*~
 #numbers.*
+
+# CMake stuff
+Makefile
+CMakeCache.txt
+CMakeFiles/*
+cmake_install.cmake
