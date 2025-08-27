@@ -2,7 +2,11 @@
 
 using namespace std;
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 /******** STATIC FUNCTIONS ********/
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 vector<string> Input::GenerateColumnNames(const string& parname) {
 	vector<string> columns;
@@ -17,7 +21,11 @@ vector<string> Input::GenerateColumnNames(const string& parname) {
 	return columns;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 /******** NON-STATIC FUNCTIONS ********/
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 Input::Input(TTreeReader& r) : reader(r) {
 
@@ -33,6 +41,8 @@ Input::Input(TTreeReader& r) : reader(r) {
 		tRVs.push_back({reader, t_columns[i].c_str()});
 	}
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void Input::ReadAndRefactor() {
 	hits_board.clear();
@@ -58,3 +68,8 @@ void Input::ReadAndRefactor() {
 		}
 	}
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+

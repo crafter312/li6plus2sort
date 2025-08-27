@@ -20,7 +20,7 @@ class Gobbi
   double Targetdist;
   float TargetThickness;
 
-  Gobbi(histo * Histo1);
+  Gobbi(Input&, histo&);
   ~Gobbi();
 
   bool unpack(unsigned short *point);

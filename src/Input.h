@@ -1,5 +1,5 @@
-#ifndef _Input
-#define _Input
+#ifndef Input_
+#define Input_
 
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>

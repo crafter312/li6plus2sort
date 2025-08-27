@@ -87,7 +87,7 @@ int main() {
 			// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
 			// Build three classes that are used to organize and unpack each physicsevent
 			histo Histo(f);
-			Gobbi gobbi(Histo);
+			Gobbi gobbi(input, Histo);
 
 			// Event loop
 			while (reader.Next()) {
