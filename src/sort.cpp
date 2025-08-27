@@ -92,6 +92,7 @@ int main() {
 			// Event loop
 			while (reader.Next()) {
 				input.ReadAndRefactor();
+				gobbi.analyze();
 
 				//TODO: PUT OTHER EVENT PROCESSING/ANALYSIS STEPS HERE (input values are stored in Input class, need to pass around as function arguments)
 

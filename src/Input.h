@@ -1,5 +1,13 @@
-#ifndef Input_
-#define Input_
+#ifndef Input_H
+#define Input_H
+
+/* Written by Henry Webb (h.s.webb@wustl.edu), August 2025
+ * This class handles reading information from a SpecTcl-
+ * generated ROOT file and reformatting it into a more
+ * easily usable form. The resulting variables are stored
+ * in this class on a per-event basis and can be accessed
+ * via getter functions.
+ */
 
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
@@ -22,6 +30,13 @@ public:
 
 	void ReadAndRefactor();
 
+	size_t GetNhits() const   { return Nhits; }
+	double GetBoard(size_t i) { return hits_board[i]; }
+	double GetChan(size_t i)  { return hits_chan[i]; }
+	double GetE(size_t i)     { return hits_e[i]; }
+	double GetELo(size_t i)   { return hits_eLo[i]; }
+	double GetT(size_t i)     { return hits_t[i]; }
+
 private:
 	// TTreeReader reference for input
 	TTreeReader& reader;
@@ -37,6 +52,7 @@ private:
 	std::vector<TTreeReaderValue<double>> tRVs;
 
 	// Vectors for Gobbi (HINP) hit values
+	size_t Nhits{0};
 	vector<size_t> hits_board;
 	vector<size_t> hits_chan;
 	vector<size_t> hits_e;

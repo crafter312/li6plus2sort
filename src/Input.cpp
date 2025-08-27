@@ -1,3 +1,11 @@
+/* Written by Henry Webb (h.s.webb@wustl.edu), August 2025
+ * This class handles reading information from a SpecTcl-
+ * generated ROOT file and reformatting it into a more
+ * easily usable form. The resulting variables are stored
+ * in this class on a per-event basis and can be accessed
+ * via getter functions.
+ */
+
 #include "Input.h"
 
 using namespace std;
@@ -45,6 +53,7 @@ Input::Input(TTreeReader& r) : reader(r) {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void Input::ReadAndRefactor() {
+	Nhits = 0;
 	hits_board.clear();
 	hits_chan.clear();
 	hits_e.clear();
@@ -60,6 +69,7 @@ void Input::ReadAndRefactor() {
 			e = *(eRVs[index]);
 
 			if (std::isnan(e) || (e == 0)) continue;
+			Nhits++;
 			hits_board.push_back(board+1);
 			hits_chan.push_back(chan);
 			hits_e.push_back((size_t)e);

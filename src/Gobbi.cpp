@@ -1,22 +1,29 @@
-#include "Gobbi.h"
+/* Nicolas Dronchi 2022_04_04
+ * Class written to handle all specifics of the Gobbi array
+ * such as communicating with HINP, calibrations, checking
+ * for charge sharing in neighbor calculating geometry.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu), August 2025
+ * Replaces use of HINP class for unpacking with Input class
+ * for reading values from a SpecTcl-generated ROOT file.
+ * This essentially offloads the work of unpacking to SpecTcl,
+ * leaving this code to only do the analysis work.
+ */
 
-//Nicolas Dronchi 2022_04_04
-//Class written to handle all specifics of the Gobbi array
-//such as communicating with HINP, calibrations, Checking for charge sharing in neighbor
-//calculating geometry
+#include "Gobbi.h"
 
 using namespace std;
 
-Gobbi::Gobbi(histo * Histo1)
-{
-  Histo = Histo1;
-  ADC = new HINP();
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+Gobbi::Gobbi(Input& in, histo& hist) {
+	input = in;
+  Histo = hist;
   Targetdist = 23.95;//23.95;//24.1;//23.5; //cm
   TargetThickness = 2.65;//3.2;//2.65; //mg/cm^2 for CD2 tar1
   //TargetThickness = 3.8; //mg/cm^2
 
-  for (int id=0;id<4;id++)
-  {
+  for (int id = 0; id < 4; id++) {
     Silicon[id] = new silicon(TargetThickness);
     Silicon[id]->init(id); //tells Silicon what position it is in
     Silicon[id]->SetTargetDistance(Targetdist);
@@ -30,39 +37,33 @@ Gobbi::Gobbi(histo * Histo1)
   DeltaTimecal = new calibrate(4, Histo->channum, "Cal/DeltaTimecal.dat",1, false);
 }
 
-Gobbi::~Gobbi()
-{
-  delete ADC;
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+Gobbi::~Gobbi() {
   delete FrontEcal;
   delete BackEcal;
   delete DeltaEcal;
   delete FrontTimecal;
   delete BackTimecal;
   delete DeltaTimecal;
-  //delete[] Silicon; //not needed as it is in automatic memory, didn't call with new
+	for (int i = 0; i < 4; i++) delete Silicon[i]; // might not need this, but will try
 }
 
-bool Gobbi::unpack(unsigned short *point)
-{
-  //reset the Silicon class
-  for (int i=0;i<4;i++){ Silicon[i]->reset();}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-  bool stat = true;
-  stat = ADC->unpackSi_HINP4(point);
-  if (!stat)
-  {
-    cout << "Bad hira" << endl;
-    return stat;
-  }
+bool Gobbi::analyze(unsigned short *point) {
 
-  for (int i=0; i<ADC->NstripsRead; i++)
-  {
+  // Reset the Silicon class
+  for (int i = 0; i < 4; i++) Silicon[i]->reset();
+
+	size_t nhits = input.GetNhits();
+  for (int i = 0; i < nhits; i++) {
     //check if there is an array for determined chip# and chan#
-    if (ADC->board[i] > 12 || ADC->chan[i] >= Histo->channum)
+    if (input.GetBoard(i) > 12 || input.GetChan(i) >= Histo->channum)
     {
-      cout << "ADC->NstripsRead " << ADC->NstripsRead << endl;
+      cout << "Nhits " << input.GetNhits() << endl;
       cout << "i " << i << endl;
-      cout << "Board " << ADC->board[i] << " and chan " << ADC->chan[i];
+      cout << "Board " << input.GetBoard(i) << " and chan " << input.GetChan(i);
       cout << " unpacked but not saved" << endl;
       return true;
     }
@@ -71,76 +72,76 @@ bool Gobbi::unpack(unsigned short *point)
     float time = 0; //can be calibrated or shifted later
 
     //Use calibration to get Energy and fill elist class in silicon
-    if (ADC->board[i] == 1 || ADC->board[i] == 3 || ADC->board[i] == 5 || ADC->board[i] == 7)
+    if (input.GetBoard(i) == 1 || input.GetBoard(i) == 3 || input.GetBoard(i) == 5 || input.GetBoard(i) == 7)
     {
-      int quad = (ADC->board[i] - 1)/2;
-      Energy = FrontEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = FrontTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i) - 1)/2;
+      Energy = FrontEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = FrontTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumFrontE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumFrontTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumFrontE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumFrontTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo->sumFrontE_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetE(i));
+      Histo->sumFrontTime_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetT(i));
+      Histo->sumFrontE_cal->Fill(quad*Histo->channum + input.GetChan(i), Energy);
+      Histo->sumFrontTime_cal->Fill(quad*Histo->channum + input.GetChan(i), time);
 
-      Histo->FrontE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->FrontElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->FrontTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->FrontE_cal[quad][ADC->chan[i]]->Fill(Energy);      
+      Histo->FrontE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo->FrontElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo->FrontTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo->FrontE_cal[quad][input.GetChan(i)]->Fill(Energy);      
 
-      //if (Energy > .5 && ADC->time[i] > 3420 && ADC->time[i] < 6380 && (quad != 1 || Energy > 1.8))
+      //if (Energy > .5 && input.GetT(i) > 3420 && input.GetT(i) < 6380 && (quad != 1 || Energy > 1.8))
       //need to set thresholds just above noise
       //if (quad == 1 && (
 
       if (Energy > .5 && (quad != 1 || Energy > 2))
       {
-          Silicon[quad]->Front.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+          Silicon[quad]->Front.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
           Silicon[quad]->multFront++;
       }
     }
-    if (ADC->board[i] == 2 || ADC->board[i] == 4 || ADC->board[i] == 6 || ADC->board[i] == 8)
+    if (input.GetBoard(i) == 2 || input.GetBoard(i) == 4 || input.GetBoard(i) == 6 || input.GetBoard(i) == 8)
     {
-      int quad = (ADC->board[i]/2)-1;
-      Energy = BackEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = BackTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i)/2)-1;
+      Energy = BackEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = BackTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumBackE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumBackTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumBackE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumBackTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo->sumBackE_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetE(i));
+      Histo->sumBackTime_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetT(i));
+      Histo->sumBackE_cal->Fill(quad*Histo->channum + input.GetChan(i), Energy);
+      Histo->sumBackTime_cal->Fill(quad*Histo->channum + input.GetChan(i), time);
 
-      Histo->BackE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->BackElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->BackTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->BackE_cal[quad][ADC->chan[i]]->Fill(Energy);  
+      Histo->BackE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo->BackElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo->BackTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo->BackE_cal[quad][input.GetChan(i)]->Fill(Energy);  
 
       if (Energy > .5)
       {      
-          Silicon[quad]->Back.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+          Silicon[quad]->Back.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
           Silicon[quad]->multBack++;
       }
     }
-    if (ADC->board[i] == 9 || ADC->board[i] == 10 || ADC->board[i] == 11 || ADC->board[i] == 12)
+    if (input.GetBoard(i) == 9 || input.GetBoard(i) == 10 || input.GetBoard(i) == 11 || input.GetBoard(i) == 12)
     {
-      int quad = (ADC->board[i]-9);
-      Energy = DeltaEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = DeltaTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i)-9);
+      Energy = DeltaEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = DeltaTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumDeltaE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumDeltaTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumDeltaE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumDeltaTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo->sumDeltaE_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetE(i));
+      Histo->sumDeltaTime_R->Fill(quad*Histo->channum + input.GetChan(i), input.GetT(i));
+      Histo->sumDeltaE_cal->Fill(quad*Histo->channum + input.GetChan(i), Energy);
+      Histo->sumDeltaTime_cal->Fill(quad*Histo->channum + input.GetChan(i), time);
 
-      Histo->DeltaE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->DeltaElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->DeltaTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->DeltaE_cal[quad][ADC->chan[i]]->Fill(Energy);  
+      Histo->DeltaE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo->DeltaElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo->DeltaTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo->DeltaE_cal[quad][input.GetChan(i)]->Fill(Energy);  
 
-      //if(Energy > .2 && ADC->time[i] > 1765 && ADC->time[i] < 8600)
+      //if(Energy > .2 && input.GetT(i) > 1765 && input.GetT(i) < 8600)
       if(Energy > .2)
       {
-        //if (quad == 0 && ADC->chan[i] == 0) cout << "EE " << Energy << endl;
+        //if (quad == 0 && input.GetChan(i) == 0) cout << "EE " << Energy << endl;
         
-        Silicon[quad]->Delta.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+        Silicon[quad]->Delta.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
         Silicon[quad]->multDelta++;
       }
     }
@@ -450,6 +451,8 @@ bool Gobbi::unpack(unsigned short *point)
   
   return true;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int Gobbi::match()
 {
