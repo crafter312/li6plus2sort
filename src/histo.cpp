@@ -4,7 +4,7 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-histo::histo(shared_ptr<TBufferMergerFile> f) {
+histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   file_read = f;
   file_read->cd();
 

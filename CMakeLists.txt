@@ -18,16 +18,18 @@ set(SOURCES Gobbi.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp solution.cpp pid.
 list(TRANSFORM SOURCES PREPEND ${SRC}/)
 
 # Locate the ROOT package and define a number of useful targets and variables
-find_package(ROOT REQUIRED COMPONENTS RIO Tree Hist)
+find_package(ROOT REQUIRED COMPONENTS RIO Tree Hist TreePlayer Core Imt Thread MultiProc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${ROOT_INCLUDE_DIRS})
+message("ROOT include directory: ${ROOT_INCLUDE_DIRS}")
+message("Available ROOT library components: ${ROOT_LIBRARIES}")
 
 # Create an OBJECT library to handle the generated sources (with sim class)
 add_library(Li6sortObjects OBJECT ${SOURCES})
 set_target_properties(Li6sortObjects PROPERTIES EXCLUDE_FROM_ALL TRUE)
-target_link_libraries(Li6sortObjects ROOT::RIO ROOT::Tree ROOT::Hist)
+target_link_libraries(Li6sortObjects ROOT::RIO ROOT::Tree ROOT::Hist ROOT::TreePlayer ROOT::Core ROOT::Imt ROOT::Thread ROOT::MultiProc)
 
 # Create 6Li(2+2)->alpha+p+n executable
 add_executable(sort ${SRC}/sort.cpp $<TARGET_OBJECTS:Li6sortObjects>)
-target_link_libraries(sort ROOT::RIO ROOT::Tree ROOT::Hist)
+target_link_libraries(sort ROOT::RIO ROOT::Tree ROOT::Hist ROOT::TreePlayer ROOT::Core ROOT::Imt ROOT::Thread ROOT::MultiProc)
 set_target_properties(sort PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -31,11 +31,11 @@ public:
 	void ReadAndRefactor();
 
 	size_t GetNhits() const   { return Nhits; }
-	double GetBoard(size_t i) { return hits_board[i]; }
-	double GetChan(size_t i)  { return hits_chan[i]; }
-	double GetE(size_t i)     { return hits_e[i]; }
-	double GetELo(size_t i)   { return hits_eLo[i]; }
-	double GetT(size_t i)     { return hits_t[i]; }
+	size_t GetBoard(size_t i) { return hits_board[i]; }
+	size_t GetChan(size_t i)  { return hits_chan[i]; }
+	size_t GetE(size_t i)     { return hits_e[i]; }
+	size_t GetELo(size_t i)   { return hits_eLo[i]; }
+	size_t GetT(size_t i)     { return hits_t[i]; }
 
 private:
 	// TTreeReader reference for input
@@ -53,16 +53,16 @@ private:
 
 	// Vectors for Gobbi (HINP) hit values
 	size_t Nhits{0};
-	vector<size_t> hits_board;
-	vector<size_t> hits_chan;
-	vector<size_t> hits_e;
-	vector<size_t> hits_eLo;
-	vector<size_t> hits_t;
+	std::vector<size_t> hits_board;
+	std::vector<size_t> hits_chan;
+	std::vector<size_t> hits_e;
+	std::vector<size_t> hits_eLo;
+	std::vector<size_t> hits_t;
 
 	/******** PRIVATE STATIC HELPER FUNCTIONS ********/
 
-	static std::vector<std::string> Input::GenerateColumnNames(const string&);
+	static std::vector<std::string> GenerateColumnNames(const std::string&);
 
-}
+};
 
 #endif

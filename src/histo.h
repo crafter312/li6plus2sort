@@ -1,7 +1,7 @@
 #ifndef histo_
 #define histo_
 
-#include <ROOT/TBufferMergerFile.hxx>
+#include <ROOT/TBufferMerger.hxx>
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraph.h>
@@ -18,10 +18,10 @@
 class histo {
 
 protected:
-	std::shared_ptr<TBufferMergerFile> file_read; // thread-safe output ROOT file pointer
+	std::shared_ptr<ROOT::TBufferMergerFile> file_read; // thread-safe output ROOT file pointer
 
 public:
-	histo(std::shared_ptr<TBufferMergerFile>);
+	histo(std::shared_ptr<ROOT::TBufferMergerFile>);
 	~histo();
 
 	//TODO: replace with CMake/compile-time variables

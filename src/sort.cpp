@@ -1,9 +1,10 @@
 // Code to analyze data from Gobbi Si-Si array + TexNeut neutron detector
 // Originally written by Nicolas Dronchi, 2020
 // Heavily modified by Henry Webb (h.s.webb@wustl.edu), August 2025
+// Now skips unpacking, reads values from SpecTcl-generated ROOT file
+// (i.e. SpecTcl now does the unpacking)
 
 #include <ROOT/TBufferMerger.hxx>
-#include <ROOT/TThreadedObject.hxx>
 #include <ROOT/TTreeProcessorMT.hxx>
 #include <TFile.h>
 #include <TTree.h>
@@ -19,6 +20,7 @@
 
 #include "Gobbi.h"
 #include "histo.h"
+#include "Input.h"
 
 using namespace std;
 
@@ -28,10 +30,10 @@ int main() {
 	t = clock();
 
 	// Enable implicit multi-threading
-	int nthreads = 4;
+	int nthreads = 1;
 	ROOT::EnableImplicitMT(nthreads);
 
-	string directory = "/data2/li7_may2022/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
+	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	ROOT::TBufferMerger merger("sort.root", "RECREATE");
@@ -48,14 +50,17 @@ int main() {
 
 		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
 		// Build three classes that are used to organize and unpack each physicsevent
+		cout << "Init histo" << endl;
 		histo Histo(f);
+		cout << "Init Gobbi" << endl;
 		Gobbi gobbi(input, Histo);
-
+		cout << "Thread-wise event loop starting..." << endl;
 		// Event loop
 		while (reader.Next()) {
 			input.ReadAndRefactor();
 			gobbi.analyze();
 		}
+		cout << "Thread-wise event loop finished!" << endl;
 	};
 
 	ifstream runFile;
@@ -69,7 +74,7 @@ int main() {
 		if (runFile.eof() || runFile.bad()) break;
 
 		datastring.str("");
-		datastring << directory << "run" << runnum << "/run-" << setfill('0') << setw(4) << runnum << ".root"; //TODO: make sure to match SpecTcl output file name format
+		datastring << directory << "run-" << runnum << ".root"; //TODO: make sure to match SpecTcl output file name format, (use setfill('0') << setw(4) or something similar if necessary)
 
 		// Check status of input run data file
 		size_t numentries;
@@ -94,7 +99,7 @@ int main() {
 		cout << "Processing TTree in file: " << datastring.str() << " (" << numentries << ")" << endl;
 
 		// Create a TTreeProcessorMT: this class orchestrates the parallel processing of an input tree
-		ROOT::TTreeProcessorMT tp(datastring.c_str(), "t");
+		ROOT::TTreeProcessorMT tp(datastring.str().c_str(), "t");
 
 		// Execute multi-threaded tree processing
 		tp.Process(f);

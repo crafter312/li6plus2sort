@@ -16,7 +16,7 @@
 #include "calibrate.h"
 #include "correl2.h"
 #include "histo.h"
-#include "input.h"
+#include "Input.h"
 #include "silicon.h"
 
 #include <iostream>

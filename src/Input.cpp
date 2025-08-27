@@ -52,6 +52,10 @@ Input::Input(TTreeReader& r) : reader(r) {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+Input::~Input() {}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 void Input::ReadAndRefactor() {
 	Nhits = 0;
 	hits_board.clear();
