@@ -1,208 +1,115 @@
-//file to unpack data from the neutron detector, ND 2020
+// Code to analyze data from Gobbi Si-Si array + TexNeut neutron detector
+// Originally written by Nicolas Dronchi, 2020
+// Heavily modified by Henry Webb (h.s.webb@wustl.edu), August 2025
+// Now skips unpacking, reads values from SpecTcl-generated ROOT file
+// (i.e. SpecTcl now does the unpacking)
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <sstream>
+#include <ROOT/TBufferMerger.hxx>
+#include <ROOT/TTreeProcessorMT.hxx>
+#include <TFile.h>
+#include <TTree.h>
+
 #include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "Gobbi.h"
 #include "histo.h"
-#include "scalerBuf.h"
+#include "Input.h"
 
 using namespace std;
 
-int main()
-{
-  clock_t t;
-  t = clock();
+int main() {
 
-  int NphysicsEvent = 0;
-  int NscalerBuffer = 0;
-  int Nscalercounter = 0;
-  int Npauses = 0;
-  int Nresumes = 0;
-  int runno = 0;
-  int runnum = 0;
-  unsigned short *point;
+	clock_t t;
+	t = clock();
 
-  string directory = "/data2/li7_may2022/";
-                     // /data2/li7_may2022/run1033/run-1033-00.evt
-  ostringstream outstring;
+	// Enable implicit multi-threading
+	int nthreads = 1;
+	ROOT::EnableImplicitMT(nthreads);
 
-  //build three classes that are used to organize and unpack each physicsevent
-  histo * Histo = new histo();
-  Gobbi gobbi(Histo);
-  scalerBuffer ScalerBuffer(14);
-  
+	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
 
-  ifstream runFile;
-  ifstream evtfile;
-  runFile.open("numbers.beam");
+	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
+	ROOT::TBufferMerger merger("sort.root", "RECREATE");
 
-  for (;;)
-  {
-    runFile >> runnum;
-    if (runFile.eof()) break;
-    if (runFile.bad()) break;
-    if (evtfile.is_open()) 
-      cout << "problem previous file not closed" << endl;
-  
-    for (int iExtra=0;iExtra<3;iExtra++) //loop over split evtfiles
-    {
-      outstring.str("");
-      //get the correct file name with potential of extra split evtfiles
-      outstring << directory << "run" << runnum << "/run-" << setfill('0') << setw(4) << runnum;
-      outstring << "-" << setfill('0') << setw(2) << iExtra << ".evt";
+	// Define the function that will process a subrange of the tree.
+	// The function must receive only one parameter, a TTreeReader,
+	// and it must be thread safe. To enforce the latter requirement,
+	// TBufferMerger::GetFile will be used for the output file.
+	auto f = [&](TTreeReader &reader) {
+		Input input(reader);
 
-      evtfile.clear();
-      evtfile.open(outstring.str().c_str(), ios::binary);
+		// Output using thread safe file
+		auto f = merger.GetFile();
 
-      //move past events that don't have split files
-      if (iExtra>0 && !evtfile){break;}
+		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
+		// Build three classes that are used to organize and unpack each physicsevent
+		cout << "Init histo" << endl;
+		histo Histo(f);
+		cout << "Init Gobbi" << endl;
+		Gobbi gobbi(input, Histo);
+		cout << "Thread-wise event loop starting..." << endl;
+		// Event loop
+		while (reader.Next()) {
+			input.ReadAndRefactor();
+			gobbi.analyze();
+		}
+		cout << "Thread-wise event loop finished!" << endl;
+	};
 
-      if (!evtfile.is_open())
-      {
-        cout << "could not open event file" << endl;
-        cout << outstring.str() << endl;
-        abort();
-        return 1;
-      }
+	ifstream runFile;
+	runFile.open("numbers.beam");
 
-      if(evtfile.bad())
-      {
-        cout << " bad found" << endl;
-        break;
-      }
+	// Loop through run numbers
+	int runnum;
+	ostringstream datastring;
+	for (;;) {
+		runFile >> runnum;
+		if (runFile.eof() || runFile.bad()) break;
 
-      cout << "reading file: " << outstring.str() << endl;
+		datastring.str("");
+		datastring << directory << "run-" << runnum << ".root"; //TODO: make sure to match SpecTcl output file name format, (use setfill('0') << setw(4) or something similar if necessary)
 
-      for(;;)
-      //for(int cnt=0; cnt < 10000; cnt++)  // loop over items in a evtfile
-      {
-        //cout << "cnt " << cnt << endl;
-        int const hBufferWords = 4;
-        int const hBufferBytes = hBufferWords*2;
-        unsigned short hBuffer[hBufferWords];
-        
-        //read a section 8 bytes long and split into 2 byte chunks 
-        //(each 2byte chunk is little endian)
-        evtfile.read((char*)hBuffer,hBufferBytes);
-        //example 0x0032    0x0000    0x001e    0x0000
-        //        nbytes    nbytes2   type      type2
-          
-        if(evtfile.eof())
-        {
-          cout << "eof found" << endl;
-          break;
-        }
-   
-        point = hBuffer;
-        int nbytes = *point++;
-        int nbytes2 = *point++;
-        int type = *point++;
-        int type2 = *point;
+		// Check status of input run data file
+		size_t numentries;
+		{
+			TFile *file = TFile::Open(datastring.str().c_str());
+			if (!file || file->IsZombie()) {
+				cerr << "Error opening file for run " << runnum << "!" << endl;
+				continue;
+			}
 
-        //if there is an issue reading ring buffer, look at these
-        //cout << hex << nbytes << " " << nbytes2 << " " << type << " " << type2 << endl;
-        //if done properly, nbytes and nbytes2 should be combined but 
-        //values are never large enough
-        
-        int dBufferBytes = nbytes - 8;
-        // if nbytes = 0032 in hex, then =50-8=42
-        
-        int dBufferWords = dBufferBytes/2;
-        // 21 2byte pairs
-      
-        unsigned short dBuffer[dBufferWords];
-        evtfile.read((char*)dBuffer,dBufferBytes);
-        point = dBuffer;
+			// Check if tree exists in the file
+			TTree *tree = (TTree*)file->Get("t");
+			if (!tree) {
+				cerr << "Tree 't' not found in file for run " << runnum << "!" << endl;
+				file->Close();
+				continue;
+			}
+			numentries = tree->GetEntries();
+			file->Close();
+		}
 
-        unsigned short *pos = point;
+		cout << "Processing TTree in file: " << datastring.str() << " (" << numentries << ")" << endl;
 
-        //debug code to look at contents of each ring buffer
-        //cout << "dbufferwords " << dBufferWords << endl;
-        //for (int i=0; i<dBufferWords; i++)
-        //{
-        //  cout << hex<< *pos++ << " ";
-        //}
-        //cout << dec << endl;
-        
-        
-        //unknown of what causes these large readouts. We only want events 
-        //that come in coincidence 2, then get read out imediately
-        //if(nbytes > 100 && type != 2 && physicsEvent > 1)
-        //{
-        //  cout << "occurs at " << physicsEvent << endl;
-        //  cout << "nbytes " << nbytes << " " << nbytes2 << " " << type << " " << type2 << endl;
-        //  continue;
-        //}
+		// Create a TTreeProcessorMT: this class orchestrates the parallel processing of an input tree
+		ROOT::TTreeProcessorMT tp(datastring.str().c_str(), "t");
 
-
-        if (type == 30) //type 30 gives physics information
-        {
-          NphysicsEvent++;
-          //eventually unpack the point
-          bool stat = gobbi.unpack(point);
-          //if (!stat) break;
-        }
-        else if (type == 20)
-        {
-          ScalerBuffer.increment(point);
-          NscalerBuffer++;
-        }
-        else if (type == 31)
-        {
-          Nscalercounter++;
-          //cout << "I don't know what this is yet. please help me." << endl;
-        }
-        else if (type == 1)
-        {
-          //header length of 104 indicated by first part of buffer 0x0068
-          runno = *point; //The run number is stored in the first part of the buffer header
-          cout << "run number = " << runno << ", should match " << runnum << endl;    
-        }
-        else if (type == 2)
-        {
-          cout << "got type == 2, flag for end of run" << endl;
-          break;
-        }
-        else if (type == 3)
-        {
-          Npauses++;
-        }
-        else if (type == 4)
-        {
-          Nresumes++;
-        }
-        else
-        {
-          cout << " unknown event type " << type << " found" << endl;
-          break;
-        }
-      }//loop over items in a evtfile
-
-      evtfile.close();
-      evtfile.clear(); //clear event status in case we had a bad file
-
-    }//loop over split event file
-  }//loop over number.beam values
-
-  cout << "Front Nstore " << gobbi.counter2 << endl;
-  cout << "Front neighbours " << gobbi.counter << endl;
-  cout << "physics Event Counters = " << NphysicsEvent << endl;
-  cout << "scaler buffers = " << NscalerBuffer << endl;
-  cout << "confirm number of scalers = " << Nscalercounter << endl;
-  cout << "Numbers of pauses = " << Npauses << endl;
-  cout << "Number of resumes = " << Nresumes << endl;
-
-  ScalerBuffer.print();
+		// Execute multi-threaded tree processing
+		tp.Process(f);
+	} // loop over run numbers from number.beam
 
   t = clock() - t;
   cout << "run time: " << (float)t/CLOCKS_PER_SEC/60 << " min" << endl;
 
-  delete Histo;
   return 0;
 }
+
 
 

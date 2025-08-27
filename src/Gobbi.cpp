@@ -1,68 +1,67 @@
-#include "Gobbi.h"
+/* Nicolas Dronchi 2022_04_04
+ * Class written to handle all specifics of the Gobbi array
+ * such as communicating with HINP, calibrations, checking
+ * for charge sharing in neighbor calculating geometry.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu), August 2025
+ * Replaces use of HINP class for unpacking with Input class
+ * for reading values from a SpecTcl-generated ROOT file.
+ * This essentially offloads the work of unpacking to SpecTcl,
+ * leaving this code to only do the analysis work.
+ */
 
-//Nicolas Dronchi 2022_04_04
-//Class written to handle all specifics of the Gobbi array
-//such as communicating with HINP, calibrations, Checking for charge sharing in neighbor
-//calculating geometry
+#include "Gobbi.h"
 
 using namespace std;
 
-Gobbi::Gobbi(histo * Histo1)
-{
-  Histo = Histo1;
-  ADC = new HINP();
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+Gobbi::Gobbi(Input& in, histo& hist) : input(in), Histo(hist) {
   Targetdist = 23.95;//23.95;//24.1;//23.5; //cm
   TargetThickness = 2.65;//3.2;//2.65; //mg/cm^2 for CD2 tar1
   //TargetThickness = 3.8; //mg/cm^2
 
-  for (int id=0;id<4;id++)
-  {
+  for (int id = 0; id < 4; id++) {
     Silicon[id] = new silicon(TargetThickness);
     Silicon[id]->init(id); //tells Silicon what position it is in
     Silicon[id]->SetTargetDistance(Targetdist);
   }
 
-  FrontEcal = new calibrate(4, Histo->channum, "Cal/FrontEcal.dat", 1, true);
-  BackEcal = new calibrate(4, Histo->channum, "Cal/BackEcal.dat", 1, true);
-  DeltaEcal = new calibrate(4, Histo->channum, "Cal/DeltaEcal.dat", 1, true);
-  FrontTimecal = new calibrate(4, Histo->channum, "Cal/FrontTimecal.dat",1, false);
-  BackTimecal = new calibrate(4, Histo->channum, "Cal/BackTimecal.dat",1, false);  
-  DeltaTimecal = new calibrate(4, Histo->channum, "Cal/DeltaTimecal.dat",1, false);
+  FrontEcal = new calibrate(4, Histo.channum, "Cal/FrontEcal.dat", 1, true);
+  BackEcal = new calibrate(4, Histo.channum, "Cal/BackEcal.dat", 1, true);
+  DeltaEcal = new calibrate(4, Histo.channum, "Cal/DeltaEcal.dat", 1, true);
+  FrontTimecal = new calibrate(4, Histo.channum, "Cal/FrontTimecal.dat",1, false);
+  BackTimecal = new calibrate(4, Histo.channum, "Cal/BackTimecal.dat",1, false);  
+  DeltaTimecal = new calibrate(4, Histo.channum, "Cal/DeltaTimecal.dat",1, false);
 }
 
-Gobbi::~Gobbi()
-{
-  delete ADC;
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+Gobbi::~Gobbi() {
   delete FrontEcal;
   delete BackEcal;
   delete DeltaEcal;
   delete FrontTimecal;
   delete BackTimecal;
   delete DeltaTimecal;
-  //delete[] Silicon; //not needed as it is in automatic memory, didn't call with new
+	for (int i = 0; i < 4; i++) delete Silicon[i]; // might not need this, but will try
 }
 
-bool Gobbi::unpack(unsigned short *point)
-{
-  //reset the Silicon class
-  for (int i=0;i<4;i++){ Silicon[i]->reset();}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-  bool stat = true;
-  stat = ADC->unpackSi_HINP4(point);
-  if (!stat)
-  {
-    cout << "Bad hira" << endl;
-    return stat;
-  }
+bool Gobbi::analyze() {
 
-  for (int i=0; i<ADC->NstripsRead; i++)
-  {
+  // Reset the Silicon class
+  for (int i = 0; i < 4; i++) Silicon[i]->reset();
+
+	size_t nhits = input.GetNhits();
+  for (int i = 0; i < nhits; i++) {
     //check if there is an array for determined chip# and chan#
-    if (ADC->board[i] > 12 || ADC->chan[i] >= Histo->channum)
+    if (input.GetBoard(i) > 12 || input.GetChan(i) >= Histo.channum)
     {
-      cout << "ADC->NstripsRead " << ADC->NstripsRead << endl;
+      cout << "Nhits " << input.GetNhits() << endl;
       cout << "i " << i << endl;
-      cout << "Board " << ADC->board[i] << " and chan " << ADC->chan[i];
+      cout << "Board " << input.GetBoard(i) << " and chan " << input.GetChan(i);
       cout << " unpacked but not saved" << endl;
       return true;
     }
@@ -71,76 +70,76 @@ bool Gobbi::unpack(unsigned short *point)
     float time = 0; //can be calibrated or shifted later
 
     //Use calibration to get Energy and fill elist class in silicon
-    if (ADC->board[i] == 1 || ADC->board[i] == 3 || ADC->board[i] == 5 || ADC->board[i] == 7)
+    if (input.GetBoard(i) == 1 || input.GetBoard(i) == 3 || input.GetBoard(i) == 5 || input.GetBoard(i) == 7)
     {
-      int quad = (ADC->board[i] - 1)/2;
-      Energy = FrontEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = FrontTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i) - 1)/2;
+      Energy = FrontEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = FrontTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumFrontE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumFrontTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumFrontE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumFrontTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo.sumFrontE_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetE(i));
+      Histo.sumFrontTime_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetT(i));
+      Histo.sumFrontE_cal->Fill(quad*Histo.channum + input.GetChan(i), Energy);
+      Histo.sumFrontTime_cal->Fill(quad*Histo.channum + input.GetChan(i), time);
 
-      Histo->FrontE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->FrontElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->FrontTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->FrontE_cal[quad][ADC->chan[i]]->Fill(Energy);      
+      Histo.FrontE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo.FrontElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo.FrontTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo.FrontE_cal[quad][input.GetChan(i)]->Fill(Energy);      
 
-      //if (Energy > .5 && ADC->time[i] > 3420 && ADC->time[i] < 6380 && (quad != 1 || Energy > 1.8))
+      //if (Energy > .5 && input.GetT(i) > 3420 && input.GetT(i) < 6380 && (quad != 1 || Energy > 1.8))
       //need to set thresholds just above noise
       //if (quad == 1 && (
 
       if (Energy > .5 && (quad != 1 || Energy > 2))
       {
-          Silicon[quad]->Front.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+          Silicon[quad]->Front.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
           Silicon[quad]->multFront++;
       }
     }
-    if (ADC->board[i] == 2 || ADC->board[i] == 4 || ADC->board[i] == 6 || ADC->board[i] == 8)
+    if (input.GetBoard(i) == 2 || input.GetBoard(i) == 4 || input.GetBoard(i) == 6 || input.GetBoard(i) == 8)
     {
-      int quad = (ADC->board[i]/2)-1;
-      Energy = BackEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = BackTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i)/2)-1;
+      Energy = BackEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = BackTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumBackE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumBackTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumBackE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumBackTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo.sumBackE_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetE(i));
+      Histo.sumBackTime_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetT(i));
+      Histo.sumBackE_cal->Fill(quad*Histo.channum + input.GetChan(i), Energy);
+      Histo.sumBackTime_cal->Fill(quad*Histo.channum + input.GetChan(i), time);
 
-      Histo->BackE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->BackElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->BackTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->BackE_cal[quad][ADC->chan[i]]->Fill(Energy);  
+      Histo.BackE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo.BackElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo.BackTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo.BackE_cal[quad][input.GetChan(i)]->Fill(Energy);  
 
       if (Energy > .5)
       {      
-          Silicon[quad]->Back.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+          Silicon[quad]->Back.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
           Silicon[quad]->multBack++;
       }
     }
-    if (ADC->board[i] == 9 || ADC->board[i] == 10 || ADC->board[i] == 11 || ADC->board[i] == 12)
+    if (input.GetBoard(i) == 9 || input.GetBoard(i) == 10 || input.GetBoard(i) == 11 || input.GetBoard(i) == 12)
     {
-      int quad = (ADC->board[i]-9);
-      Energy = DeltaEcal->getEnergy(quad, ADC->chan[i], ADC->high[i]);
-      time = DeltaTimecal->getTime(quad, ADC->chan[i], ADC->time[i]);
+      int quad = (input.GetBoard(i)-9);
+      Energy = DeltaEcal->getEnergy(quad, input.GetChan(i), input.GetE(i));
+      time = DeltaTimecal->getTime(quad, input.GetChan(i), input.GetT(i));
 
-      Histo->sumDeltaE_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->high[i]);
-      Histo->sumDeltaTime_R->Fill(quad*Histo->channum + ADC->chan[i], ADC->time[i]);
-      Histo->sumDeltaE_cal->Fill(quad*Histo->channum + ADC->chan[i], Energy);
-      Histo->sumDeltaTime_cal->Fill(quad*Histo->channum + ADC->chan[i], time);
+      Histo.sumDeltaE_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetE(i));
+      Histo.sumDeltaTime_R->Fill(quad*Histo.channum + input.GetChan(i), input.GetT(i));
+      Histo.sumDeltaE_cal->Fill(quad*Histo.channum + input.GetChan(i), Energy);
+      Histo.sumDeltaTime_cal->Fill(quad*Histo.channum + input.GetChan(i), time);
 
-      Histo->DeltaE_R[quad][ADC->chan[i]]->Fill(ADC->high[i]);
-      Histo->DeltaElow_R[quad][ADC->chan[i]]->Fill(ADC->low[i]);
-      Histo->DeltaTime_R[quad][ADC->chan[i]]->Fill(ADC->time[i]);
-      Histo->DeltaE_cal[quad][ADC->chan[i]]->Fill(Energy);  
+      Histo.DeltaE_R[quad][input.GetChan(i)]->Fill(input.GetE(i));
+      Histo.DeltaElow_R[quad][input.GetChan(i)]->Fill(input.GetELo(i));
+      Histo.DeltaTime_R[quad][input.GetChan(i)]->Fill(input.GetT(i));
+      Histo.DeltaE_cal[quad][input.GetChan(i)]->Fill(Energy);  
 
-      //if(Energy > .2 && ADC->time[i] > 1765 && ADC->time[i] < 8600)
+      //if(Energy > .2 && input.GetT(i) > 1765 && input.GetT(i) < 8600)
       if(Energy > .2)
       {
-        //if (quad == 0 && ADC->chan[i] == 0) cout << "EE " << Energy << endl;
+        //if (quad == 0 && input.GetChan(i) == 0) cout << "EE " << Energy << endl;
         
-        Silicon[quad]->Delta.Add(ADC->chan[i], Energy, ADC->low[i], ADC->high[i], time);
+        Silicon[quad]->Delta.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
         Silicon[quad]->multDelta++;
       }
     }
@@ -162,18 +161,18 @@ bool Gobbi::unpack(unsigned short *point)
   {
     for (int n=0; n<Silicon[id]->Front.Nstore; n++)
     {
-      sumchan = id*Histo->channum + Silicon[id]->Front.Order[n].strip;
-      Histo->sumFrontE_addback->Fill(sumchan, Silicon[id]->Front.Order[n].energy);
+      sumchan = id*Histo.channum + Silicon[id]->Front.Order[n].strip;
+      Histo.sumFrontE_addback->Fill(sumchan, Silicon[id]->Front.Order[n].energy);
     }
     for (int n=0; n<Silicon[id]->Back.Nstore; n++)
     {
-      sumchan = id*Histo->channum + Silicon[id]->Back.Order[n].strip;
-      Histo->sumBackE_addback->Fill(sumchan, Silicon[id]->Back.Order[n].energy);
+      sumchan = id*Histo.channum + Silicon[id]->Back.Order[n].strip;
+      Histo.sumBackE_addback->Fill(sumchan, Silicon[id]->Back.Order[n].energy);
     }
     for (int n=0; n<Silicon[id]->Delta.Nstore; n++)
     {
-      sumchan = id*Histo->channum + Silicon[id]->Delta.Order[n].strip;
-      Histo->sumDeltaE_addback->Fill(sumchan, Silicon[id]->Delta.Order[n].energy);
+      sumchan = id*Histo.channum + Silicon[id]->Delta.Order[n].strip;
+      Histo.sumDeltaE_addback->Fill(sumchan, Silicon[id]->Delta.Order[n].energy);
     }
   }
 
@@ -182,8 +181,8 @@ bool Gobbi::unpack(unsigned short *point)
   {
     if (Silicon[id]->Front.Nstore == 1 && Silicon[id]->Delta.Nstore == 1)
     {
-      Histo->frontdeltastripnum[id]->Fill(Silicon[id]->Front.Order[0].strip, Silicon[id]->Delta.Order[0].strip);
-      Histo->timediff[id]->Fill(Silicon[id]->Front.Order[0].time - Silicon[id]->Delta.Order[0].time);
+      Histo.frontdeltastripnum[id]->Fill(Silicon[id]->Front.Order[0].strip, Silicon[id]->Delta.Order[0].strip);
+      Histo.timediff[id]->Fill(Silicon[id]->Front.Order[0].time - Silicon[id]->Delta.Order[0].time);
     }
   }
 
@@ -195,7 +194,7 @@ bool Gobbi::unpack(unsigned short *point)
     if (Silicon[id]->Front.Nstore ==1 && Silicon[id]->Back.Nstore ==1 && Silicon[id]->Delta.Nstore ==1)
     {
       totMulti += Silicon[id]->simpleFront();
-			Histo->sumFrontTimeMult1_cal->Fill(id*Histo->channum + Silicon[id]->Front.Order[0].strip, Silicon[id]->Front.Order[0].time);
+			Histo.sumFrontTimeMult1_cal->Fill(id*Histo.channum + Silicon[id]->Front.Order[0].strip, Silicon[id]->Front.Order[0].time);
       //cout << "simple " << totMulti << endl;
     }
     else //if higher multiplicity then worry about picking the right one
@@ -228,14 +227,14 @@ bool Gobbi::unpack(unsigned short *point)
       //fill in dE-E plots to select particle type
       float Ener = Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy*(1-cos(Silicon[id]->Solution[isol].theta));
 
-      Histo->DEE[id]->Fill(Ener, Silicon[id]->Solution[isol].denergy*cos(Silicon[id]->Solution[isol].theta));
+      Histo.DEE[id]->Fill(Ener, Silicon[id]->Solution[isol].denergy*cos(Silicon[id]->Solution[isol].theta));
 
-      Histo->xyhitmap->Fill(Silicon[id]->Solution[isol].Xpos, Silicon[id]->Solution[isol].Ypos);
+      Histo.xyhitmap->Fill(Silicon[id]->Solution[isol].Xpos, Silicon[id]->Solution[isol].Ypos);
       //fill hist on theta/phi angles
       double th = Silicon[id]->Solution[isol].theta*180./pi; //in deg, not rad
-      Histo->Evstheta[id]->Fill(th, Silicon[id]->Solution[isol].energy);
-      Histo->Evstheta_all->Fill(th, Silicon[id]->Solution[isol].energy);
-      Histo->Theta->Fill(th);
+      Histo.Evstheta[id]->Fill(th, Silicon[id]->Solution[isol].energy);
+      Histo.Evstheta_all->Fill(th, Silicon[id]->Solution[isol].energy);
+      Histo.Theta->Fill(th);
 
       //used to get high energy calibration points
       //need to convert interlaced strip numbers to calibration strip numbers
@@ -257,11 +256,11 @@ bool Gobbi::unpack(unsigned short *point)
       //if (Ecorr > 5)      
         //cout << "EnergyR " << Silicon[id]->Solution[isol].energyR << " Ecorr " << Ecorr << " Ecorr_R " << Ecorr_R << endl;
 
-      Histo->AngleCorrE[id][chan]->Fill(Ecorr);
-      Histo->AngleCorr_noCorr[id][chan]->Fill(Silicon[id]->Solution[isol].energy);
-      Histo->AngleCorrE_R[id][chan]->Fill(Ecorr_R);
+      Histo.AngleCorrE[id][chan]->Fill(Ecorr);
+      Histo.AngleCorr_noCorr[id][chan]->Fill(Silicon[id]->Solution[isol].energy);
+      Histo.AngleCorrE_R[id][chan]->Fill(Ecorr_R);
       
-      Histo->AngleCorrFrontE_cal->Fill(id*Histo->channum + Silicon[id]->Solution[isol].ifront, Ecorr);
+      Histo.AngleCorrFrontE_cal->Fill(id*Histo.channum + Silicon[id]->Solution[isol].ifront, Ecorr);
 
       int chandE = Silicon[id]->Solution[isol].ide;
       if (chan%2 ==0) //evens
@@ -280,15 +279,15 @@ bool Gobbi::unpack(unsigned short *point)
       float dEcorr = Silicon[id]->Solution[isol].denergy + angle_dEcorr;
       float dEcorr_R = DeltaEcal->reverseCal(id,Silicon[id]->Solution[isol].ide, dEcorr);
 
-      Histo->AngleCorrDeltaE[id][chandE]->Fill(dEcorr);
-      Histo->AngleCorrDeltaE_noCorr[id][chandE]->Fill(Silicon[id]->Solution[isol].denergy);
-      Histo->AngleCorrDeltaE_R[id][chandE]->Fill(dEcorr_R);
+      Histo.AngleCorrDeltaE[id][chandE]->Fill(dEcorr);
+      Histo.AngleCorrDeltaE_noCorr[id][chandE]->Fill(Silicon[id]->Solution[isol].denergy);
+      Histo.AngleCorrDeltaE_R[id][chandE]->Fill(dEcorr_R);
       
-      Histo->AngleCorrDeltaE_cal->Fill(id*Histo->channum + Silicon[id]->Solution[isol].ide, dEcorr);
+      Histo.AngleCorrDeltaE_cal->Fill(id*Histo.channum + Silicon[id]->Solution[isol].ide, dEcorr);
 
       float Etot = Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy;
-      Histo->sumEtot_cal->Fill(id*Histo->channum + Silicon[id]->Solution[isol].ifront, Etot);
-      Histo->AngleCorrSum_cal->Fill(id*Histo->channum + Silicon[id]->Solution[isol].ifront, Ecorr+dEcorr);
+      Histo.sumEtot_cal->Fill(id*Histo.channum + Silicon[id]->Solution[isol].ifront, Etot);
+      Histo.AngleCorrSum_cal->Fill(id*Histo.channum + Silicon[id]->Solution[isol].ifront, Ecorr+dEcorr);
 
     }
   }
@@ -310,37 +309,37 @@ bool Gobbi::unpack(unsigned short *point)
       //protons
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 1)
       {
-        Histo->protonhitmap->Fill(xpos, ypos);
-        Histo->dTime_proton->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.protonhitmap->Fill(xpos, ypos);
+        Histo.dTime_proton->Fill(Silicon[id]->Solution[isol].timediff);
       }
       //deuterons
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 2)
       {
-        Histo->deuteronhitmap->Fill(xpos, ypos);
-        Histo->dTime_deuteron->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.deuteronhitmap->Fill(xpos, ypos);
+        Histo.dTime_deuteron->Fill(Silicon[id]->Solution[isol].timediff);
       }
       //tritons
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 3)
       {
-        Histo->tritonhitmap->Fill(xpos, ypos);
-        Histo->dTime_triton->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.tritonhitmap->Fill(xpos, ypos);
+        Histo.dTime_triton->Fill(Silicon[id]->Solution[isol].timediff);
       }
       //alphas
       if (Silicon[id]->Solution[isol].iZ == 2 && Silicon[id]->Solution[isol].iA == 4)
       {
-        Histo->alphahitmap->Fill(xpos, ypos);
-        Histo->dTime_alpha->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.alphahitmap->Fill(xpos, ypos);
+        Histo.dTime_alpha->Fill(Silicon[id]->Solution[isol].timediff);
       }
       //He6
       if (Silicon[id]->Solution[isol].iZ == 2 && Silicon[id]->Solution[isol].iA == 6)
       {
-        Histo->He6hitmap->Fill(xpos, ypos);
-        Histo->dTime_He6->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.He6hitmap->Fill(xpos, ypos);
+        Histo.dTime_He6->Fill(Silicon[id]->Solution[isol].timediff);
       }
       if (Silicon[id]->Solution[isol].iZ == 3)
       {
-        Histo->Lihitmap->Fill(xpos, ypos);
-        Histo->dTime_Li->Fill(Silicon[id]->Solution[isol].timediff);
+        Histo.Lihitmap->Fill(xpos, ypos);
+        Histo.dTime_Li->Fill(Silicon[id]->Solution[isol].timediff);
       }
     }
   }
@@ -360,7 +359,7 @@ bool Gobbi::unpack(unsigned short *point)
     {
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 1)
       {
-        Histo->ProtonEnergy->Fill(Silicon[id]->Solution[isol].Ekin, Silicon[id]->Solution[isol].theta*180./pi);
+        Histo.ProtonEnergy->Fill(Silicon[id]->Solution[isol].Ekin, Silicon[id]->Solution[isol].theta*180./pi);
       }
     }
   }
@@ -443,13 +442,15 @@ bool Gobbi::unpack(unsigned short *point)
         }
       }
       //cout << "After    1=" << particlenum[0] << "   2=" << particlenum[1] << endl;
-      Histo->CorrelationTable->Fill(particlenum[0],particlenum[1]);
+      Histo.CorrelationTable->Fill(particlenum[0],particlenum[1]);
     }
   }
 
   
   return true;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int Gobbi::match()
 {
@@ -481,31 +482,31 @@ void Gobbi::corr_4He()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_4He - Q4He;
 
-    Histo->Erel_4He_pt->Fill(Erel_4He);
-    Histo->Ex_4He_pt->Fill(Ex);
-    Histo->ThetaCM_4He_pt->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_4He_pt->Fill(Correl.velocityCM);
+    Histo.Erel_4He_pt->Fill(Erel_4He);
+    Histo.Ex_4He_pt->Fill(Ex);
+    Histo.ThetaCM_4He_pt->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_4He_pt->Fill(Correl.velocityCM);
 
     if (Erel_4He > 4.0)
     {
       float xpos = Correl.frag[0]->Xpos;
       float ypos = Correl.frag[0]->Ypos;
-      Histo->He4_p_hitmap->Fill(xpos, ypos);
+      Histo.He4_p_hitmap->Fill(xpos, ypos);
       xpos = Correl.frag[1]->Xpos;
       ypos = Correl.frag[1]->Ypos;
-      Histo->He4_t_hitmap->Fill(xpos, ypos);
+      Histo.He4_t_hitmap->Fill(xpos, ypos);
 
       //fill in dE-E plots to select particle type
       float Ener = Correl.frag[0]->energy + Correl.frag[0]->denergy*(1-cos(Correl.frag[0]->theta));
 
-      Histo->DEE_He4[Correl.frag[0]->itele]->Fill(Ener, Correl.frag[0]->denergy*cos(Correl.frag[0]->theta));
+      Histo.DEE_He4[Correl.frag[0]->itele]->Fill(Ener, Correl.frag[0]->denergy*cos(Correl.frag[0]->theta));
 
       Ener = Correl.frag[1]->energy + Correl.frag[1]->denergy*(1-cos(Correl.frag[1]->theta));
   
-      Histo->DEE_He4[Correl.frag[1]->itele]->Fill(Ener, Correl.frag[1]->denergy*cos(Correl.frag[1]->theta));
+      Histo.DEE_He4[Correl.frag[1]->itele]->Fill(Ener, Correl.frag[1]->denergy*cos(Correl.frag[1]->theta));
     }
 
-    Histo->Erel_pt_costhetaH->Fill(Erel_4He,Correl.cos_thetaH);
+    Histo.Erel_pt_costhetaH->Fill(Erel_4He,Correl.cos_thetaH);
   }
 
   // d+d
@@ -521,12 +522,12 @@ void Gobbi::corr_4He()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_4He - Q4He;
 
-    Histo->Erel_4He_dd->Fill(Erel_4He);
-    Histo->Ex_4He_dd->Fill(Ex);
-    Histo->ThetaCM_4He_dd->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_4He_dd->Fill(Correl.velocityCM);
+    Histo.Erel_4He_dd->Fill(Erel_4He);
+    Histo.Ex_4He_dd->Fill(Ex);
+    Histo.ThetaCM_4He_dd->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_4He_dd->Fill(Correl.velocityCM);
 
-    Histo->Erel_dd_costhetaH->Fill(Erel_4He,Correl.cos_thetaH);
+    Histo.Erel_dd_costhetaH->Fill(Erel_4He,Correl.cos_thetaH);
 
   }
 
@@ -550,10 +551,10 @@ void Gobbi::corr_5He()
     float thetaCM = Correl.thetaCM;
     //float Ex = Erel_5Li - Q5Li;
 
-    Histo->Erel_5He_dt->Fill(Erel_5He);
-    //Histo->Ex_5Li_pa->Fill(Ex);
-    Histo->ThetaCM_5He_dt->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_5He_dt->Fill(Correl.velocityCM);
+    Histo.Erel_5He_dt->Fill(Erel_5He);
+    //Histo.Ex_5Li_pa->Fill(Ex);
+    Histo.ThetaCM_5He_dt->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_5He_dt->Fill(Correl.velocityCM);
   }
 }
 
@@ -574,10 +575,10 @@ void Gobbi::corr_6He()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_6He - Q6He;
 
-    Histo->Erel_6He_tt->Fill(Erel_6He);
-    Histo->Ex_6He_tt->Fill(Ex);
-    Histo->ThetaCM_6He_tt->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_6He_tt->Fill(Correl.velocityCM);
+    Histo.Erel_6He_tt->Fill(Erel_6He);
+    Histo.Ex_6He_tt->Fill(Ex);
+    Histo.ThetaCM_6He_tt->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_6He_tt->Fill(Correl.velocityCM);
   }
 }
 
@@ -598,10 +599,10 @@ void Gobbi::corr_5Li()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_5Li - Q5Li;
 
-    Histo->Erel_5Li_pa->Fill(Erel_5Li);
-    Histo->Ex_5Li_pa->Fill(Ex);
-    Histo->ThetaCM_5Li_pa->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_5Li_pa->Fill(Correl.velocityCM);
+    Histo.Erel_5Li_pa->Fill(Erel_5Li);
+    Histo.Ex_5Li_pa->Fill(Ex);
+    Histo.ThetaCM_5Li_pa->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_5Li_pa->Fill(Correl.velocityCM);
   }
 
   // H2+He3
@@ -618,10 +619,10 @@ void Gobbi::corr_5Li()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_5Li - Q5Li;
 
-    Histo->Erel_5Li_d3He->Fill(Erel_5Li);
-    Histo->Ex_5Li_d3He->Fill(Ex);
-    Histo->ThetaCM_5Li_d3He->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_5Li_d3He->Fill(Correl.velocityCM);
+    Histo.Erel_5Li_d3He->Fill(Erel_5Li);
+    Histo.Ex_5Li_d3He->Fill(Ex);
+    Histo.ThetaCM_5Li_d3He->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_5Li_d3He->Fill(Correl.velocityCM);
   }
 }
 
@@ -643,32 +644,32 @@ void Gobbi::corr_6Li()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_6Li - Q6Li;
 
-    Histo->Erel_6Li_da->Fill(Erel_6Li);
-    Histo->Ex_6Li_da->Fill(Ex);
+    Histo.Erel_6Li_da->Fill(Erel_6Li);
+    Histo.Ex_6Li_da->Fill(Ex);
 
-    Histo->cos_thetaH_da->Fill(Correl.cos_thetaH);
-    Histo->ThetaCM_6Li_da->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_6Li_da->Fill(Correl.velocityCM);
-    Histo->VCM_vs_ThetaCM->Fill(thetaCM*180./acos(-1), Correl.velocityCM);
+    Histo.cos_thetaH_da->Fill(Correl.cos_thetaH);
+    Histo.ThetaCM_6Li_da->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_6Li_da->Fill(Correl.velocityCM);
+    Histo.VCM_vs_ThetaCM->Fill(thetaCM*180./acos(-1), Correl.velocityCM);
     
     if(fabs(Correl.cos_thetaH) < .3)
-      Histo->Ex_6Li_da_trans->Fill(Ex);
+      Histo.Ex_6Li_da_trans->Fill(Ex);
     if(fabs(Correl.cos_thetaH) > .7)
-      Histo->Ex_6Li_da_long->Fill(Ex);
+      Histo.Ex_6Li_da_long->Fill(Ex);
 
 
-    Histo->cos_da_thetaH->Fill(Correl.cos_thetaH);
-    Histo->Erel_da_cosThetaH->Fill(Erel_6Li,Correl.cos_thetaH);
+    Histo.cos_da_thetaH->Fill(Correl.cos_thetaH);
+    Histo.Erel_da_cosThetaH->Fill(Erel_6Li,Correl.cos_thetaH);
 
     if (Ex > 2 && Ex < 2.5)
     {
       //cout << "deut Ekin " << Correl.frag[0]->Ekin << endl;
       //cout << "alpha Ekin " << Correl.frag[1]->Ekin << endl;
-      Histo->deutE_gate->Fill(Correl.frag[0]->Ekin);
-      Histo->alphaE_gated->Fill(Correl.frag[1]->Ekin);
+      Histo.deutE_gate->Fill(Correl.frag[0]->Ekin);
+      Histo.alphaE_gated->Fill(Correl.frag[1]->Ekin);
 
-      Histo->deutE_gate_cosThetaH->Fill(Correl.frag[0]->Ekin,Correl.cos_thetaH);
-      Histo->alphaE_gate_cosThetaH->Fill(Correl.frag[1]->Ekin,Correl.cos_thetaH);
+      Histo.deutE_gate_cosThetaH->Fill(Correl.frag[0]->Ekin,Correl.cos_thetaH);
+      Histo.alphaE_gate_cosThetaH->Fill(Correl.frag[1]->Ekin,Correl.cos_thetaH);
     }
 
     for (int id=0;id<4;id++) 
@@ -714,7 +715,7 @@ void Gobbi::corr_6Li()
     float Ex_7Li = Erel_7Li - Q7Li;
     //cout << "Erel " << Erel_7Li << endl;
     //cout << "Ex " << Ex_7Li << endl;
-    Histo->Ex_7Li_ta_bad->Fill(Ex_7Li);
+    Histo.Ex_7Li_ta_bad->Fill(Ex_7Li);
 
 		// ToF calculations, added by Henry Webb (h.s.webb@wustl.edu)
 		// This is used for quantifying neutron time resolution when
@@ -726,7 +727,7 @@ void Gobbi::corr_6Li()
 		float time_deut  = deut_ToF + Correl.frag[0]->time; // Correl.frag[0].time is the E front time
 		float time_alpha = alpha_ToF + Correl.frag[1]->time;
 		float tdiff      = time_alpha - time_deut; // order shouldn't matter
-		Histo->react_origin_tdiff->Fill(tdiff);
+		Histo.react_origin_tdiff->Fill(tdiff);
   }
 }
 
@@ -760,68 +761,68 @@ void Gobbi::corr_7Li()
     //float cosbeamCMtoHF = Correl.frag[1]->MomCM[2]/sqrt(mag2);
     //cout << "cosbeamCMtoHF " << cosbeamCMtoHF << endl;
 
-    Histo->Erel_7Li_p6He->Fill(Erel_7Li);
-    Histo->Erel_7Li_p6He_Q->Fill(Erel_7Li,getqvalue);
-    Histo->Erel_7Li_p6He_lowres->Fill(Erel_7Li);
+    Histo.Erel_7Li_p6He->Fill(Erel_7Li);
+    Histo.Erel_7Li_p6He_Q->Fill(Erel_7Li,getqvalue);
+    Histo.Erel_7Li_p6He_lowres->Fill(Erel_7Li);
 
     if (abs(Correl.cos_thetaH) < 0.7)
     {
-      Histo->Ex_7Li_p6He_transverse->Fill(Ex);
+      Histo.Ex_7Li_p6He_transverse->Fill(Ex);
     }
     if (Correl.cos_thetaH > -0.7)
     {
-      Histo->Ex_7Li_p6He_transverse2->Fill(Ex);
+      Histo.Ex_7Li_p6He_transverse2->Fill(Ex);
     }
-    else  Histo->Erel_7Li_p6He_pFor->Fill(Erel_7Li);
+    else  Histo.Erel_7Li_p6He_pFor->Fill(Erel_7Li);
 
     //frag[0] is always triton, frag[1] is always alpha
     // -2000 < dT_proton < 0 && -500 < dT_He6 < 200
     if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -1300) 
       if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-        Histo->Ex_7Li_p6He_timegate->Fill(Ex);
+        Histo.Ex_7Li_p6He_timegate->Fill(Ex);
 
 
-    Histo->cos_thetaH->Fill(Correl.cos_thetaH);
-    Histo->missingmass->Fill(missingmass-Mass_n);
-    Histo->Qvalue->Fill(getqvalue);
-    Histo->Qvalue2->Fill(getelqvalue);
-    Histo->Erel_missingmass->Fill(Erel_7Li,missingmass-Mass_n);
+    Histo.cos_thetaH->Fill(Correl.cos_thetaH);
+    Histo.missingmass->Fill(missingmass-Mass_n);
+    Histo.Qvalue->Fill(getqvalue);
+    Histo.Qvalue2->Fill(getelqvalue);
+    Histo.Erel_missingmass->Fill(Erel_7Li,missingmass-Mass_n);
     if (missingmass-Mass_n > -2 && missingmass-Mass_n < 2)
     {
       if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -2000) 
         if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-          Histo->Ex_7Li_p6He_clean->Fill(Ex);
+          Histo.Ex_7Li_p6He_clean->Fill(Ex);
     } 
 
-    Histo->Erel_7Li_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
+    Histo.Erel_7Li_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
     if (Erel_7Li < 1.)
     {
-      Histo->cos_thetaH_lowErel->Fill(Correl.cos_thetaH);
-      //Histo->DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-      //Histo->DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
+      Histo.cos_thetaH_lowErel->Fill(Correl.cos_thetaH);
+      //Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
+      //Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
     }
     if (Ex > 11.6 && Ex < 11.8)
     {
-      Histo->hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
-      Histo->hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
-      Histo->DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-      Histo->DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
+      Histo.hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
+      Histo.hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
+      Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
+      Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
     }
 
-    Histo->Ex_7Li_p6He_ExvsEp->Fill(Ex, Correl.frag[0]->energy);
+    Histo.Ex_7Li_p6He_ExvsEp->Fill(Ex, Correl.frag[0]->energy);
 
 
-    Histo->Ex_7Li_p6He->Fill(Ex);
+    Histo.Ex_7Li_p6He->Fill(Ex);
     //cout << Ex << endl;
-    Histo->ThetaCM_7Li_p6He->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_7Li_p6He->Fill(Correl.velocityCM);
+    Histo.ThetaCM_7Li_p6He->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_7Li_p6He->Fill(Correl.velocityCM);
     if(Erel_7Li < 2.)
     {
-      Histo->VCM_7Li_p6He_lowErel->Fill(Correl.velocityCM);
+      Histo.VCM_7Li_p6He_lowErel->Fill(Correl.velocityCM);
     }
 
-    Histo->dTime_7Li_proton->Fill(Correl.frag[0]->timediff);
-    Histo->dTime_7Li_He6->Fill(Correl.frag[1]->timediff);
+    Histo.dTime_7Li_proton->Fill(Correl.frag[0]->timediff);
+    Histo.dTime_7Li_He6->Fill(Correl.frag[1]->timediff);
     
 
   }
@@ -843,20 +844,20 @@ void Gobbi::corr_7Li()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_7Li - Q7Li;
 
-    Histo->Erel_7Li_ta->Fill(Erel_7Li);
-    Histo->Ex_7Li_ta->Fill(Ex);
-    Histo->ThetaCM_7Li_ta->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_7Li_ta->Fill(Correl.velocityCM);
+    Histo.Erel_7Li_ta->Fill(Erel_7Li);
+    Histo.Ex_7Li_ta->Fill(Ex);
+    Histo.ThetaCM_7Li_ta->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_7Li_ta->Fill(Correl.velocityCM);
 
     if(fabs(Correl.cos_thetaH) < .5)
-      Histo->Ex_7Li_ta_trans->Fill(Ex);
+      Histo.Ex_7Li_ta_trans->Fill(Ex);
     if(fabs(Correl.cos_thetaH) > .7)
-      Histo->Ex_7Li_ta_long->Fill(Ex);
+      Histo.Ex_7Li_ta_long->Fill(Ex);
 
-    Histo->cos_ta_thetaH->Fill(Correl.cos_thetaH);
-    Histo->Erel_ta_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
-    Histo->Ex_tar->Fill(Ex_tar);
-    Histo->Erel_vs_Extar->Fill(Erel_7Li,Ex_tar);
+    Histo.cos_ta_thetaH->Fill(Correl.cos_thetaH);
+    Histo.Erel_ta_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
+    Histo.Ex_tar->Fill(Ex_tar);
+    Histo.Erel_vs_Extar->Fill(Erel_7Li,Ex_tar);
 
 
 
@@ -864,21 +865,21 @@ void Gobbi::corr_7Li()
     // -2000 < dT_proton < 0 && -500 < dT_He6 < 200
     if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -2000) 
       if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-        Histo->Ex_7Li_ta_timegate->Fill(Ex);
+        Histo.Ex_7Li_ta_timegate->Fill(Ex);
 
     //if (Ex > 3.5 && Ex < 4.3)
     //{
-    //  Histo->hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
-    //  Histo->hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
-    //  //Histo->DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-    //  //Histo->DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
+    //  Histo.hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
+    //  Histo.hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
+    //  //Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
+    //  //Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
     //}
-    Histo->dTime_7Li_triton->Fill(Correl.frag[0]->timediff);
-    Histo->dTime_7Li_alpha->Fill(Correl.frag[1]->timediff);
+    Histo.dTime_7Li_triton->Fill(Correl.frag[0]->timediff);
+    Histo.dTime_7Li_alpha->Fill(Correl.frag[1]->timediff);
 
     if (Correl.frag[0]->itele != Correl.frag[1]->itele)
     {
-      Histo->seperate_quad_Ex_7Li_ta->Fill(Ex);
+      Histo.seperate_quad_Ex_7Li_ta->Fill(Ex);
     }
 
 
@@ -902,10 +903,10 @@ void Gobbi::corr_7Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_7Be - Q7Be;
 
-    Histo->Erel_7Be_a3He->Fill(Erel_7Be);
-    Histo->Ex_7Be_a3He->Fill(Ex);
-    Histo->ThetaCM_7Be_a3He->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_7Be_a3He->Fill(Correl.velocityCM);
+    Histo.Erel_7Be_a3He->Fill(Erel_7Be);
+    Histo.Ex_7Be_a3He->Fill(Ex);
+    Histo.ThetaCM_7Be_a3He->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_7Be_a3He->Fill(Correl.velocityCM);
   }
   // p+Li6
   if(Correl.proton.mult == 1 && Correl.Li6.mult == 1)
@@ -920,10 +921,10 @@ void Gobbi::corr_7Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_7Be - Q7Be;
 
-    Histo->Erel_7Be_p6Li->Fill(Erel_7Be);
-    Histo->Ex_7Be_p6Li->Fill(Ex);
-    Histo->ThetaCM_7Be_p6Li->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_7Be_p6Li->Fill(Correl.velocityCM);
+    Histo.Erel_7Be_p6Li->Fill(Erel_7Be);
+    Histo.Ex_7Be_p6Li->Fill(Ex);
+    Histo.ThetaCM_7Be_p6Li->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_7Be_p6Li->Fill(Correl.velocityCM);
   }
 }
 
@@ -949,14 +950,14 @@ void Gobbi::corr_8Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_8Be - Q8Be;
 
-    Histo->Erel_8Be_aa->Fill(Erel_8Be);
-    Histo->Ex_8Be_aa->Fill(Ex);
+    Histo.Erel_8Be_aa->Fill(Erel_8Be);
+    Histo.Ex_8Be_aa->Fill(Ex);
 
-    Histo->Erel_aa_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
+    Histo.Erel_aa_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
     if (Ex < 0.1)
     {
-      Histo->ThetaCM_8Be_aa->Fill(thetaCM*180./acos(-1));
-      Histo->VCM_8Be_aa->Fill(Correl.velocityCM);
+      Histo.ThetaCM_8Be_aa->Fill(thetaCM*180./acos(-1));
+      Histo.VCM_8Be_aa->Fill(Correl.velocityCM);
     }
 
   }
@@ -976,30 +977,30 @@ void Gobbi::corr_8Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_8Be - Q8Be;
 
-    Histo->Erel_8Be_p7Li->Fill(Erel_8Be);
-    Histo->Ex_8Be_p7Li->Fill(Ex);
+    Histo.Erel_8Be_p7Li->Fill(Erel_8Be);
+    Histo.Ex_8Be_p7Li->Fill(Ex);
     if(fabs(Correl.cos_thetaH) < .5)
-      Histo->Ex_8Be_p7Li_trans->Fill(Ex);
+      Histo.Ex_8Be_p7Li_trans->Fill(Ex);
 
-    Histo->ThetaCM_8Be_p7Li->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_8Be_p7Li->Fill(Correl.velocityCM);
-    Histo->cos_p7Li_thetaH->Fill(Correl.cos_thetaH);
-    Histo->Erel_p7Li_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
+    Histo.ThetaCM_8Be_p7Li->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_8Be_p7Li->Fill(Correl.velocityCM);
+    Histo.cos_p7Li_thetaH->Fill(Correl.cos_thetaH);
+    Histo.Erel_p7Li_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
 
 
     //look for proton and Li7 cuttoffs
-    Histo->ProtonEnergies_p7Li->Fill(Correl.frag[0]->Ekin);
-    Histo->LithiumEnergies_p7Li->Fill(Correl.frag[1]->denergy);
+    Histo.ProtonEnergies_p7Li->Fill(Correl.frag[0]->Ekin);
+    Histo.LithiumEnergies_p7Li->Fill(Correl.frag[1]->denergy);
 
     //cout << Correl.frag[0]->Ekin << " " << Correl.frag[1]->Ekin << endl;
     
-    Histo->dTime_8Be_proton->Fill(Correl.frag[0]->timediff);
-    Histo->dTime_8Be_Li7->Fill(Correl.frag[1]->timediff);
+    Histo.dTime_8Be_proton->Fill(Correl.frag[0]->timediff);
+    Histo.dTime_8Be_Li7->Fill(Correl.frag[1]->timediff);
 
 
     if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -1800)
       if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -550)
-        Histo->Ex_8Be_p7Li_timegate->Fill(Ex);
+        Histo.Ex_8Be_p7Li_timegate->Fill(Ex);
 
 
   }
@@ -1018,15 +1019,15 @@ void Gobbi::corr_8Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_8Be - Q8Be;
 
-    Histo->Erel_8Be_pta->Fill(Erel_8Be);
-    Histo->Ex_8Be_pta->Fill(Ex);
+    Histo.Erel_8Be_pta->Fill(Erel_8Be);
+    Histo.Ex_8Be_pta->Fill(Ex);
     if(fabs(Correl.cos_thetaH) < .5)
-      Histo->Ex_8Be_pta_trans->Fill(Ex);
-    Histo->ThetaCM_8Be_pta->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_8Be_pta->Fill(Correl.velocityCM);
+      Histo.Ex_8Be_pta_trans->Fill(Ex);
+    Histo.ThetaCM_8Be_pta->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_8Be_pta->Fill(Correl.velocityCM);
 
-    Histo->cos_pta_thetaH->Fill(Correl.cos_thetaH);
-    Histo->Erel_pta_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
+    Histo.cos_pta_thetaH->Fill(Correl.cos_thetaH);
+    Histo.Erel_pta_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
   }
 
   //t+a (missing p)
@@ -1043,8 +1044,8 @@ void Gobbi::corr_8Be()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_7Li - Q7Li;
 
-    Histo->Erel_7Li_ta_fake->Fill(Erel_7Li);
-    Histo->Ex_7Li_ta_fake->Fill(Ex);
+    Histo.Erel_7Li_ta_fake->Fill(Erel_7Li);
+    Histo.Ex_7Li_ta_fake->Fill(Ex);
 
 
     if (Ex < 5 && Ex > 4.4)
@@ -1061,7 +1062,7 @@ void Gobbi::corr_8Be()
       float thetaCM = Correl.thetaCM;
       float Exreal = Erel_8Be - Q8Be;
 
-      Histo->Ex_8Be_7LiGate->Fill(Exreal);
+      Histo.Ex_8Be_7LiGate->Fill(Exreal);
     }
 
   }
@@ -1088,10 +1089,10 @@ void Gobbi::corr_9B()
     float thetaCM = Correl.thetaCM;
     float Ex = Erel_9B - Q9B;
 
-    Histo->Erel_9B_paa->Fill(Erel_9B);
-    Histo->Ex_9B_paa->Fill(Ex);
-    Histo->ThetaCM_9B_paa->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_9B_paa->Fill(Correl.velocityCM);
+    Histo.Erel_9B_paa->Fill(Erel_9B);
+    Histo.Ex_9B_paa->Fill(Ex);
+    Histo.ThetaCM_9B_paa->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_9B_paa->Fill(Correl.velocityCM);
 
     Correl.zeroMask();
     Correl.alpha.mask[0]=true;
@@ -1103,8 +1104,8 @@ void Gobbi::corr_9B()
     float Erel_8Be = Correl.findErel();
 
     float Ex_8Be = Erel_8Be + 2.*mass_alpha - mass_8Be;
-    Histo->Ex_9B_aa->Fill(Ex_8Be);
-    if (fabs(Ex_8Be) < .1) Histo->Ex_9B_p8Be->Fill(Ex);
+    Histo.Ex_9B_aa->Fill(Ex_8Be);
+    if (fabs(Ex_8Be) < .1) Histo.Ex_9B_p8Be->Fill(Ex);
   }
 }
 
@@ -1127,9 +1128,9 @@ void Gobbi::corr_6Be()
 
     float thetaCM = Correl.thetaCM;
 
-    Histo->Erel_6Be_2pa->Fill(Erel_6Be);
-    Histo->ThetaCM_6Be_2pa->Fill(thetaCM*180./acos(-1));
-    Histo->VCM_6Be_2pa->Fill(Correl.velocityCM);
+    Histo.Erel_6Be_2pa->Fill(Erel_6Be);
+    Histo.ThetaCM_6Be_2pa->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_6Be_2pa->Fill(Correl.velocityCM);
 
   }
 }

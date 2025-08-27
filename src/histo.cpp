@@ -1,40 +1,43 @@
 #include "histo.h"
 
+using namespace std;
 
-histo::histo()
-{
-  //create root file
-  file_read = new TFile ("sort.root","RECREATE");
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
+  file_read = f;
   file_read->cd();
 
-  //create subdirectories to store arrays of spectra
-  dirSummary = new TDirectoryFile("Summary", "Summary"); //name, title
-  //make subdirectories
-  //Energies, Raw+Calibrated
+  //// Create subdirectories to store arrays of spectra
+
+  dirSummary = new TDirectoryFile("Summary", "Summary"); // name, title
+
+  // Energies, Raw+Calibrated
   dir1dFrontE_R = dirSummary->mkdir("1dFrontE_R","1dFrontE_R");
-  dir1dBackE_R = dirSummary->mkdir("1dBackE_R","1dBackE_R");
+  dir1dBackE_R  = dirSummary->mkdir("1dBackE_R","1dBackE_R");
   dir1dDeltaE_R = dirSummary->mkdir("1dDeltaE_R","1dDeltaE_R");
 
   dir1dFrontlowE_R = dirSummary->mkdir("1dFrontlowE_R","1dFrontlowE_R");
-  dir1dBacklowE_R = dirSummary->mkdir("1dBacklowE_R","1dBacklowE_R");
+  dir1dBacklowE_R  = dirSummary->mkdir("1dBacklowE_R","1dBacklowE_R");
   dir1dDeltalowE_R = dirSummary->mkdir("1dDeltalowE_R","1dDeltalowE_R");
 
   dir1dFrontE_cal = dirSummary->mkdir("1dFrontE_cal","1dFrontE_cal");
-  dir1dBackE_cal = dirSummary->mkdir("1dBackE_cal","1dBackE_cal");
+  dir1dBackE_cal  = dirSummary->mkdir("1dBackE_cal","1dBackE_cal");
   dir1dDeltaE_cal = dirSummary->mkdir("1dDeltaE_cal","1dDeltaE_cal");
 
   dirAngleCorrFrontE = dirSummary->mkdir("AngleCorrFrontE","AngleCorrFrontE");
   dirAngleCorrDeltaE = dirSummary->mkdir("AngleCorrDeltaE","AngleCorrDeltaE");
 
-  //Delta Energies, Raw+Calibrated
+  // Delta Energies, Raw+Calibrated
   dir1dFrontTime_R = dirSummary->mkdir("1dFrontTime_R","1dFrontTime_R");
-  dir1dBackTime_R = dirSummary->mkdir("1dBackTime_R","1dBackTime_R");
+  dir1dBackTime_R  = dirSummary->mkdir("1dBackTime_R","1dBackTime_R");
   dir1dDeltaTime_R = dirSummary->mkdir("1dDeltaTime_R","1dDeltaTime_R");
 
-  //directory for DeltaE-E plots
+  // Directory for DeltaE-E plots
   dirDEEplots = new TDirectoryFile("DEEplots","DEEplots");
-  dirhitmaps = new TDirectoryFile("hitmaps","hitmaps");
-  //director for all correlations and inv-mass
+  dirhitmaps  = new TDirectoryFile("hitmaps","hitmaps");
+
+  // Directory for all correlations and inv-mass
   dirInvMass = new TDirectoryFile("InvMass","InvMass");
   dir4He = dirInvMass->mkdir("4He","4He");
   dir5He = dirInvMass->mkdir("5He","5He");
@@ -45,18 +48,17 @@ histo::histo()
   dir6Be = dirInvMass->mkdir("6Be","6Be");
   dir7Be = dirInvMass->mkdir("7Be","7Be");
   dir8Be = dirInvMass->mkdir("8Be","8Be");
-  dir9B = dirInvMass->mkdir("9B","9B");
+  dir9B  = dirInvMass->mkdir("9B","9B");
 
   dirSummary->cd();
 
-
-
-  int Nbin = 5000;
-  float Ecal_Emax = 50.0;
+  int Nbin         = 5000;
+  float Ecal_Emax  = 50.0;
   float Delta_Emax = 16.0;
 
-  //create full summaries
-  //Energies, Raw+Calibrated
+  //// Create full summaries
+
+  // Energies, Raw+Calibrated
   sumFrontE_R = new TH2I("sumFrontE_R","",4*channum,0,4*channum,1024,0,8192);
   sumFrontE_R->SetOption("colz");
   sumBackE_R = new TH2I("sumBackE_R","",4*channum,0,4*channum,1024,0,8192);
@@ -87,7 +89,7 @@ histo::histo()
   AngleCorrDeltaE_cal = new TH2I("AngleCorrDeltaE_cal","",4*channum,0,4*channum,Nbin/4,0,Delta_Emax);
   AngleCorrDeltaE_cal->SetOption("colz");
 
-  //times
+  // Times
   sumFrontTime_R = new TH2I("sumFrontTime_R","",4*channum,0,4*channum,512,0,16383);
   sumFrontTime_R->SetOption("colz");
   sumFrontTime_cal = new TH2I("sumFrontTime_cal","",4*channum,0,4*channum,512,0,16383);
@@ -104,16 +106,14 @@ histo::histo()
   sumFrontTimeMult1_cal = new TH2I("sumFrontTimeMult1_cal","",4*channum,0,4*channum,512,0,16383);
   sumFrontTimeMult1_cal->SetOption("colz");
 
-
   FrontvsBack = new TH2I("FrontvsBack","",500,0,20,500,0,20);
 
   ostringstream name;
-  //create all 1d Front spectra
-  for (int board_i=0; board_i<E_boardnum/2; board_i++)
-  {
-    for (int chan_i=0; chan_i<channum; chan_i++)
-    {
-      //individual Front Energy
+  // Create all 1d Front spectra
+  for (int board_i = 0; board_i < E_boardnum / 2; board_i++) {
+    for (int chan_i = 0; chan_i < channum; chan_i++) {
+
+      // Individual Front Energy
       dir1dFrontE_R->cd();
       name.str("");
       name << "FrontE_R" << board_i << "_" << chan_i;
@@ -134,7 +134,7 @@ histo::histo()
       name << "FrontE_cal" << board_i << "_" << chan_i;
       FrontE_cal[board_i][chan_i] = new TH1I(name.str().c_str(),"",Nbin,5,Ecal_Emax);
 
-      //individual Back Energy
+      // Individual Back Energy
       dir1dBackE_R->cd();
       name.str("");
       name << "BackE_R" << board_i << "_" << chan_i;
@@ -155,7 +155,7 @@ histo::histo()
       name << "BackE_cal" << board_i << "_" << chan_i;
       BackE_cal[board_i][chan_i] = new TH1I(name.str().c_str(),"",Nbin,0,Ecal_Emax);
 
-      //individual DeltaE
+      // Individual DeltaE
       dir1dDeltaE_R->cd();
       name.str("");
       name << "DeltaE_R" << board_i << "_" << chan_i;
@@ -185,14 +185,11 @@ histo::histo()
       name.str("");
       name << "AngleCorrDeltaE" << board_i << "_" << chan_i;
       AngleCorrDeltaE[board_i][chan_i] = new TH1I(name.str().c_str(),"",Nbin/3,0,Delta_Emax);
-
     }
   }
 
-  for (int board_i=0; board_i<E_boardnum/2; board_i++)
-  {
-    for (int chan_i=0; chan_i<channum; chan_i++)
-    {
+  for (int board_i = 0; board_i < E_boardnum / 2; board_i++) {
+    for (int chan_i = 0; chan_i < channum; chan_i++) {
       dirAngleCorrFrontE->cd();
       name.str("");
       name << "AngleCorrE_noCorr" << board_i << "_" << chan_i;
@@ -205,10 +202,8 @@ histo::histo()
     }
   }
 
-  for (int board_i=0; board_i<E_boardnum/2; board_i++)
-  {
-    for (int chan_i=0; chan_i<channum; chan_i++)
-    {
+  for (int board_i = 0; board_i < E_boardnum / 2; board_i++) {
+    for (int chan_i = 0; chan_i < channum; chan_i++) {
       dirAngleCorrFrontE->cd();
       name.str("");
       name << "AngleCorrE_R" << board_i << "_" << chan_i;
@@ -222,10 +217,9 @@ histo::histo()
   }
 
 
-  //create all spectra based on quadrants
+  // Create all spectra based on quadrants
   dirDEEplots->cd();
-  for (int quad=0; quad<4; quad++)
-  {
+  for (int quad = 0; quad < 4; quad++) {
     name.str("");
     name << "DEE_simple" << quad;
     DEE_simple[quad] = new TH2I(name.str().c_str(),"",500,0,80,500,0,16); //E is x, DE is y
@@ -276,7 +270,7 @@ histo::histo()
   CorrelationTable = new TH2I("CorrelationTable","",9,-0.5,8.5,9,0,8.5);
 
 
-  //He4
+  // He4
   dir4He->cd();
   Erel_4He_pt = new TH1I("Erel_4He_pt","",800,0,30);
   Ex_4He_pt = new TH1I("Ex_4He_pt","",350,19,26);
@@ -297,21 +291,21 @@ histo::histo()
   VCM_4He_dd = new TH1I("VCM_4He_dd","",100,0,14);
   Erel_dd_costhetaH = new TH2I("Erel_dd_costhetaH","",50,0,2,25,-1,1);
 
-  //He5
+  // He5
   dir5He->cd();
   Erel_5He_dt = new TH1I("Erel_5He_dt","",800,0,30);
   Ex_5He_dt = new TH1I("Ex_5He_dt","",800,-2,30);
   ThetaCM_5He_dt = new TH1I("ThetaCM_5He_dt","",200,0,10);
   VCM_5He_dt = new TH1I("VCM_5He_dt","",100,0,14);
-  //He6
+
+  // He6
   dir6He->cd();
   Erel_6He_tt = new TH1I("Erel_6He_tt","",800,0,30);
   Ex_6He_tt = new TH1I("Ex_6He_tt","",800,-2,30);
   ThetaCM_6He_tt = new TH1I("ThetaCM_6He_tt","",200,0,10);
   VCM_6He_tt = new TH1I("VCM_6He_tt","",100,0,14);
 
-
-  //Li5
+  // Li5
   dir5Li->cd();
   Erel_5Li_pa = new TH1I("Erel_5Li_pa","",800,0,30);
   Ex_5Li_pa = new TH1I("Ex_5Li_pa","",800,-2,30);
@@ -323,7 +317,7 @@ histo::histo()
   ThetaCM_5Li_d3He = new TH1I("ThetaCM_5Li_d3He","",200,0,10);
   VCM_5Li_d3He = new TH1I("VCM_5Li_d3He","",100,0,14);
 
-  //Li6
+  // Li6
   dir6Li->cd();
   Erel_6Li_da = new TH1I("Erel_6Li_da","",500,0,5);
   Ex_6Li_da_trans = new TH1I("Ex_6Li_da_trans","",500,0,5);
@@ -333,7 +327,6 @@ histo::histo()
   ThetaCM_6Li_da = new TH1I("ThetaCM_6Li_da","",200,0,25);
   VCM_6Li_da = new TH1I("VCM_6Li_da","",100,1.5,4.5);
   VCM_vs_ThetaCM = new TH2I("VCM_vs_ThetaCM","", 200,0,25,100,1.5,4.5);
-
 
   cos_da_thetaH = new TH1I("cos_da_thetaH","",100,-1.1,1.1);
   Erel_da_cosThetaH = new TH2I("Erel_da_cosThetaH","",200,0,3,25,-1,1);
@@ -345,8 +338,8 @@ histo::histo()
 
 	react_origin_tdiff = new TH1I("react_origin_tdiff","",2000,-100,100);
 
-  //Li7
-//p+6He
+  // Li7
+	// p + 6He
   dir7Li->cd();
   Erel_7Li_p6He = new TH1I("Erel_7Li_p6He","",200,0,8);
   Erel_7Li_p6He_Q = new TH2I("Erel_7Li_p6He_Q","",200,0,8,200,-5,15);
@@ -378,7 +371,7 @@ histo::histo()
 
   Ex_7Li_p6He_ExvsEp = new TH2I("Ex_7Li_p6He_ExvsEp","", 400,10,18, 100,0,16);
 
-//t+alpha
+	// t + alpha
   Erel_7Li_ta = new TH1I("Erel_7Li_ta","",400,0,8);
   Ex_7Li_ta = new TH1I("Ex_7Li_ta","",400,2,10);
   Ex_7Li_ta_trans = new TH1I("Ex_7Li_ta_trans","",400,2,10);
@@ -401,14 +394,13 @@ histo::histo()
 
   DEE_shoulderevents = new TH2I("DEE_shoulderevents","",500,0,80,800,0,22);
 
-
-  //Be6
+  // Be6
   dir6Be->cd();
   Erel_6Be_2pa = new TH1I("Erel_6Be_2pa","",800,0,30);
   ThetaCM_6Be_2pa = new TH1I("ThetaCM_6Be_2pa","",200,0,10);
   VCM_6Be_2pa = new TH1I("VCM_6Be_2pa","",100,0,14);
 
-  //Be7
+  // Be7
   dir7Be->cd();
   Erel_7Be_a3He = new TH1I("Erel_7Be_a3He","",800,0,30);
   Ex_7Be_a3He = new TH1I("Ex_7Be_a3He","",800,-5,30);
@@ -420,14 +412,13 @@ histo::histo()
   ThetaCM_7Be_p6Li = new TH1I("ThetaCM_7Be_p6Li","",200,0,10);
   VCM_7Be_p6Li = new TH1I("VCM_7Be_p6Li","",100,0,14);
 
-  //Be8
+  // Be8
   dir8Be->cd();
   Erel_8Be_aa = new TH1I("Erel_8Be_aa","",800,0,17);
   Ex_8Be_aa = new TH1I("Ex_8Be_aa","",1600,-1,7);
   ThetaCM_8Be_aa = new TH1I("ThetaCM_8Be_aa","",200,0,25);
   VCM_8Be_aa = new TH1I("VCM_8Be_aa","",100,0,14);
   Erel_aa_cosThetaH = new TH2I("Erel_aa_cosThetaH","",100,0,8,25,-1,1);
-
 
   Erel_8Be_p7Li = new TH1I("Erel_8Be_p7Li","",800,0,17);
   Ex_8Be_p7Li = new TH1I("Ex_8Be_p7Li","",400,17,25);
@@ -445,7 +436,6 @@ histo::histo()
 
   Ex_8Be_p7Li_timegate = new TH1I("Ex_8Be_p7Li_timegate","",400,17,25);
 
-
   Erel_8Be_pta = new TH1I("Erel_8Be_pta","",800,0,30);
   Ex_8Be_pta = new TH1I("Ex_8Be_pta","",250,20,25);
   Ex_8Be_pta_trans = new TH1I("Ex_8Be_pta_trans","",250,20,25);
@@ -459,7 +449,7 @@ histo::histo()
 
   Ex_8Be_7LiGate = new TH1I("Ex_8Be_pta","",250,20,25);
 
-  //B9
+  // B9
   dir9B->cd();
   Erel_9B_paa = new TH1I("Erel_9B_paa","",800,0,17);
   Ex_9B_paa = new TH1I("Ex_9B_paa","",800,-2,15);
@@ -469,12 +459,15 @@ histo::histo()
   VCM_9B_paa = new TH1I("VCM_9B_paa","",100,0,14);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-//*********************************************
-histo::~histo()
-{
-
+histo::~histo() {
   file_read->Write();
   cout << "histo written" << endl;
   file_read->Close();
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+
