@@ -4,6 +4,8 @@
 
 correl2::correl2()
 {
+  neutron.init(0,1);
+  particle.push_back(&neutron);
   proton.init(1,1);
   particle.push_back(&proton);
   H2.init(1,2);

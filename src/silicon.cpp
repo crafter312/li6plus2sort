@@ -154,7 +154,7 @@ int silicon::getPID()
     Solution[isol].ipid = 1; //this can be adapted to be different values later
     Solution[isol].iZ = Pid->Z;
     Solution[isol].iA = Pid->A;
-    Solution[isol].mass = Pid->mass*m0; //we want mass in energy units not AMU
+    Solution[isol].mass = Pid->mass;
   }
   return pidmulti;
 }

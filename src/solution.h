@@ -58,6 +58,7 @@ class solution
   //variables filled after position() and calcEloss() from Silicon.cpp
   float Xpos;
   float Ypos;
+  float Zpos; // added for TexNeut
   float theta;
   float phi;
   float energyTot;

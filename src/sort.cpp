@@ -6,6 +6,7 @@
 
 #include <ROOT/TBufferMerger.hxx>
 #include <ROOT/TTreeProcessorMT.hxx>
+#include <TH1I.h>
 #include <TFile.h>
 #include <TTree.h>
 
@@ -45,22 +46,42 @@ int main() {
 	auto f = [&](TTreeReader &reader) {
 		Input input(reader);
 
+		//TexNeut tex;
+
 		// Output using thread safe file
 		auto f = merger.GetFile();
+		f->cd();
+
+		int whatever;
+
+		TH1I h("h","h",100,0,100);
+
+		TTree test("test","test");
+		test.Branch("whatever", &whatever);
 
 		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
 		// Build three classes that are used to organize and unpack each physicsevent
 		cout << "Init histo" << endl;
 		histo Histo(f);
 		cout << "Init Gobbi" << endl;
-		Gobbi gobbi(input, Histo);
+		Gobbi gobbi(input, Histo); //tex
 		cout << "Thread-wise event loop starting..." << endl;
 		// Event loop
 		while (reader.Next()) {
 			input.ReadAndRefactor();
+			//bool good = tex.analyze(input.getNeutMult(), input.getNeutE(), ...); // input.getNeutE(), ... -> type: std::vector<size_t>&
+			//if (!good) continue;
+			//gobbi.LoadTexNeutSolution();
 			gobbi.analyze();
+
+			h.Fill(whatever);
+			whatever = input.GetNhits();
+			test.Fill();
 		}
 		cout << "Thread-wise event loop finished!" << endl;
+
+		f->cd();
+		f->WriteTObject(&h, "h", "WriteDelete");
 	};
 
 	ifstream runFile;
