@@ -4,14 +4,17 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include <atomic>
+#include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
 
 #define BOARD_COUNT 12
 #define CHAN_COUNT 32
-#define PSD_CHIP_COUNT 2
+#define PSD_CHIP_COUNT 24
 #define PSD_CHAN_COUNT 8 
 
 // Number of columns per parameter type in the input file
@@ -19,30 +22,6 @@
 #define PSD_NCOLUMNS PSD_CHIP_COUNT * PSD_CHAN_COUNT
 
 using namespace std;
-
-struct Progress {
-	float mi{0.};
-	float ma{100.};
-	float pos{0.};
-	
-	void SetRange(float a, float b) {
-		mi = min(a, b);
-		ma = max(a, b);
-	}
-
-	void SetPos(float p) {
-		pos = max(mi, min(ma, p));
-	}
-
-	void Increment(float i) {
-		pos += i;
-		pos = max(mi, min(ma, pos));
-	}
-
-	void Print() {
-		cout << "\rProgress: " << (pos - mi) / (ma - mi) * 100. << flush;
-	}
-};
 
 vector<string> generate_column_names_hinp(const string& parname) {
 	vector<string> columns;
@@ -73,7 +52,7 @@ vector<string> generate_column_names_psd(const string& parname) {
 void refactor_processor() {
 
 	// Get number of entries from input file
-	string iprefix = "run-461";
+	string iprefix = "run-503";
 	string path = "../RootFiles/";
 	size_t numentries;
 	{
@@ -101,14 +80,10 @@ void refactor_processor() {
 	int nthreads = 4;
 	ROOT::EnableImplicitMT(nthreads);
 
-	// TThreadedObject for tracking progress
+	// Setup for multi-threaded progress bar
 	const size_t updateRate = 10000;
-	ROOT::TThreadedObject<Progress> progressBar;
-	{
-		auto pBar = progressBar.Get();
-		pBar->SetRange(0., numentries);
-		pBar->SetPos(0.);
-	}
+	std::atomic<long long> globalProcessed{0};
+	mutex consoleMutex; // To prevent text scrambling
 
 	// Create a TTreeProcessorMT: specify the file and the tree in it
 	ROOT::TTreeProcessorMT tp(ifname.c_str(), "t");
@@ -130,16 +105,14 @@ void refactor_processor() {
 	// and it must be thread safe. To enforce the latter requirement,
 	// TBufferMerger::GetFile will be used for the output file.
 	auto f = [&](TTreeReader &reader) {
-		// Get progress bar
-		auto pBar = progressBar.Get();
-		pair<Long64_t, Long64_t> range = reader.GetEntriesRange();
-		pBar->SetRange((float)get<0>(range), (float)get<1>(range));
-		pBar->SetPos((float)get<0>(range));
 
 		// Create reader values for all columns, iteratively
 		vector<TTreeReaderValue<double>> eRVs;
+		eRVs.reserve(NCOLUMNS);
 		vector<TTreeReaderValue<double>> eLoRVs;
+		eLoRVs.reserve(NCOLUMNS);
 		vector<TTreeReaderValue<double>> tRVs;
+		tRVs.reserve(NCOLUMNS);
 		for (int i = 0; i < NCOLUMNS; i++) {
 			eRVs.push_back({reader, e_columns[i].c_str()});
 			eLoRVs.push_back({reader, eLo_columns[i].c_str()});
@@ -147,9 +120,13 @@ void refactor_processor() {
 		}
 
 		vector<TTreeReaderValue<double>> As;
+		As.reserve(PSD_NCOLUMNS);
 		vector<TTreeReaderValue<double>> Bs;
+		Bs.reserve(PSD_NCOLUMNS);
 		vector<TTreeReaderValue<double>> Cs;
+		Cs.reserve(PSD_NCOLUMNS);
 		vector<TTreeReaderValue<double>> Ts;
+		Ts.reserve(PSD_NCOLUMNS);
 		for (int i = 0; i < PSD_NCOLUMNS; i++) {
 			As.push_back({reader, a_columns[i].c_str()});
 			Bs.push_back({reader, b_columns[i].c_str()});
@@ -171,21 +148,21 @@ void refactor_processor() {
 
 		// Get thread safe file and create thread-local tree for output
 		auto f = merger.GetFile();
-		TTree tpar("tpar", "tpar");
-		tpar.Branch("board", &hits_board);
-		tpar.Branch("chan", &hits_chan);
-		tpar.Branch("e", &hits_e);
-		tpar.Branch("eLo", &hits_eLo);
-		tpar.Branch("psd_chip", &psd_hits_chip);
-		tpar.Branch("psd_chan", &psd_hits_chan);
-		tpar.Branch("psd_a", &psd_hits_a);
-		tpar.Branch("psd_b", &psd_hits_b);
-		tpar.Branch("psd_c", &psd_hits_c);
-		tpar.Branch("psd_t", &psd_hits_t);
+		TTree *tpar = new TTree("tpar", "tpar");
+		tpar->Branch("board", &hits_board);
+		tpar->Branch("chan", &hits_chan);
+		tpar->Branch("e", &hits_e);
+		tpar->Branch("eLo", &hits_eLo);
+		tpar->Branch("psd_chip", &psd_hits_chip);
+		tpar->Branch("psd_chan", &psd_hits_chan);
+		tpar->Branch("psd_a", &psd_hits_a);
+		tpar->Branch("psd_b", &psd_hits_b);
+		tpar->Branch("psd_c", &psd_hits_c);
+		tpar->Branch("psd_t", &psd_hits_t);
 
 		size_t index;
 		double e, a;
-		size_t dn = 0;
+		size_t localCounter = 0;
 		while (reader.Next()) {
 			hits_board.clear();
 			hits_chan.clear();
@@ -213,7 +190,7 @@ void refactor_processor() {
 			}
 			for (size_t chip = 0; chip < PSD_CHIP_COUNT; chip++) {
 				for (size_t chan = 0; chan < PSD_CHAN_COUNT; chan++) {
-					index = (chip * PSD_CHIP_COUNT) + chan; // make sure this matches the order from generate_column_names_psd
+					index = (chip * PSD_CHAN_COUNT) + chan; // make sure this matches the order from generate_column_names_psd
 					a = *(As[index]);
 
 					if (std::isnan(a) || (a == 0)) continue;
@@ -225,22 +202,32 @@ void refactor_processor() {
 					psd_hits_t.push_back((size_t)(*(Ts[index])));
 				}
 			}
-			tpar.Fill();
+			tpar->Fill();
 
 			// Handle progress bar
-			dn++;
-			if (dn == updateRate) {
-				pBar->Increment((float)updateRate);
-				pBar->Print();
-				dn = 0;
+			localCounter++;
+			if (localCounter >= updateRate) {
+				long long total = globalProcessed.fetch_add(localCounter);
+				lock_guard<mutex> lock(consoleMutex);
+				long double percentage = (long double)total / numentries * 100.0;
+				cout << "\r[ " << setw(7) << fixed << setprecision(4) 
+				     << percentage << "% ] Processing entries..." << setw(10) << " " << flush;
+
+				localCounter = 0;
 			}
 		}
+
+		// Add the remainder to the progress bar
+    globalProcessed.fetch_add(localCounter);
+
 		f->Write();
 	};
 
 	// Execute multi-threaded tree processing
 	tp.Process(f);
-	
+
+	cout << "\r[ " << setw(7) << fixed << setprecision(3) 
+	     << 100.0 << "% ] Processing complete!" << setw(10) << " " << flush;
 	cout << endl;
 }
 

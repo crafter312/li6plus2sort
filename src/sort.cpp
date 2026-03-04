@@ -69,7 +69,8 @@ int main() {
 		// Event loop
 		while (reader.Next()) {
 			input.ReadAndRefactor();
-			//bool good = tex.analyze(input.getNeutMult(), input.getNeutE(), ...); // input.getNeutE(), ... -> type: std::vector<size_t>&
+			//tex.CustomFillNecessary(input.getNeutMult(), input.getNeutE(), ...); // input.getNeutE(), ... -> type: std::vector<size_t>&
+			//bool good = tex.analyze();
 			//if (!good) continue;
 			//gobbi.LoadTexNeutSolution();
 			gobbi.analyze();
