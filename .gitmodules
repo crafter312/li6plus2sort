@@ -1,0 +1,3 @@
+[submodule "lib/TNLIB"]
+	path = lib/TNLIB
+	url = git@github.com:crafter312/TNLIB.git

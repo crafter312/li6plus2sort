@@ -4,12 +4,6 @@
 // Now skips unpacking, reads values from SpecTcl-generated ROOT file
 // (i.e. SpecTcl now does the unpacking)
 
-#include <ROOT/TBufferMerger.hxx>
-#include <ROOT/TTreeProcessorMT.hxx>
-#include <TH1I.h>
-#include <TFile.h>
-#include <TTree.h>
-
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -18,6 +12,16 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <ROOT/TBufferMerger.hxx>
+#include <ROOT/TTreeProcessorMT.hxx>
+#include <TH1I.h>
+#include <TFile.h>
+#include <TTree.h>
+
+#include <config.hpp>
+#include <detector.hpp>
+#include <eventclass.hpp>
 
 #include "Gobbi.h"
 #include "histo.h"
@@ -35,6 +39,11 @@ int main() {
 	ROOT::EnableImplicitMT(nthreads);
 
 	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
+
+	// TNLIB (Alex's TexNeut library) setup
+  config configFile("tnlib.config");
+	detector texneut;
+  texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	ROOT::TBufferMerger merger("sort.root", "RECREATE");

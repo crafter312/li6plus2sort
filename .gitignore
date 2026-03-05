@@ -41,6 +41,9 @@ CMakeCache.txt
 CMakeFiles/*
 cmake_install.cmake
 
+# All build files
+build/*
+
 # Data files
 *.root
 

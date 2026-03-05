@@ -104,14 +104,22 @@ const double Mass_18F = 18.*m0+mass_18F;
 const double Mass_17Ne = 17.*m0+mass_17Ne;
 const double Mass_18Ne = 18.*m0 + mass_18Ne;
 
+// Pair hasher required for the maps created below
+struct pair_hash {
+    inline size_t operator()(const std::pair<size_t, size_t> & v) const {
+        // A simple way to combine hashes:
+        return std::hash<size_t>{}(v.first) ^ (std::hash<size_t>{}(v.second) << 1);
+    }
+};
+
 // Lookup table for mass excesses (first index Z, second index A)
-const std::unordered_map<std::pair<size_t, size_t>, double> mass_lookup = {
+const std::unordered_map<std::pair<size_t, size_t>, double, pair_hash> mass_lookup = {
 	{{0, 1}, mass_n},
 	{{1, 1}, mass_p}, {{1, 2}, mass_d}, {{1, 3}, mass_t},
 	{{2, 3}, mass_3He}, {{2, 4}, mass_alpha}, {{2, 6}, mass_6He}, {{2, 8}, mass_8He},
 	{{3, 5}, mass_5Li}, {{3, 6}, mass_6Li}, {{3, 7}, mass_7Li}, {{3, 8}, mass_8Li}, {{3, 9}, mass_9Li},
 	{{4, 6}, mass_6Be}, {{4, 7}, mass_7Be}, {{4, 8}, mass_8Be}, {{4, 9}, mass_9Be}, {{4, 10}, mass_10Be}, {{4, 11}, mass_11Be},
-	{{5, 8}, mass_8B}, {{5, 9}, mass_9B}, {{5, 10}, mass_10B, {{5, 11}, mass_11B},
+	{{5, 8}, mass_8B}, {{5, 9}, mass_9B}, {{5, 10}, mass_10B}, {{5, 11}, mass_11B},
 	{{6, 9}, mass_9C}, {{6, 10}, mass_10C}, {{6, 11}, mass_11C}, {{6, 12}, mass_12C}, {{6, 13}, mass_13C}, {{6, 14}, mass_14C},
 	{{7, 11}, mass_11N}, {{7, 12}, mass_12N}, {{7, 13}, mass_13N}, {{7, 14}, mass_14N}, {{7, 15}, mass_15N},
 	{{8, 13}, mass_13O}, {{8, 14}, mass_14O}, {{8, 15}, mass_15O}, {{8, 16}, mass_16O}, {{8, 17}, mass_17O},
@@ -120,13 +128,13 @@ const std::unordered_map<std::pair<size_t, size_t>, double> mass_lookup = {
 };
 
 // Lookup table for total masses (first index Z, second index A)
-const std::unordered_map<std::pair<size_t, size_t>, double> Mass_lookup = {
+const std::unordered_map<std::pair<size_t, size_t>, double, pair_hash> Mass_lookup = {
 	{{0, 1}, Mass_n},
 	{{1, 1}, Mass_p}, {{1, 2}, Mass_d}, {{1, 3}, Mass_t},
 	{{2, 3}, Mass_3He}, {{2, 4}, Mass_alpha}, {{2, 6}, Mass_6He}, {{2, 8}, Mass_8He},
 	{{3, 5}, Mass_5Li}, {{3, 6}, Mass_6Li}, {{3, 7}, Mass_7Li}, {{3, 8}, Mass_8Li}, {{3, 9}, Mass_9Li},
 	{{4, 6}, Mass_6Be}, {{4, 7}, Mass_7Be}, {{4, 8}, Mass_8Be}, {{4, 9}, Mass_9Be}, {{4, 10}, Mass_10Be}, {{4, 11}, Mass_11Be},
-	{{5, 8}, Mass_8B}, {{5, 9}, Mass_9B}, {{5, 10}, Mass_10B, {{5, 11}, Mass_11B},
+	{{5, 8}, Mass_8B}, {{5, 9}, Mass_9B}, {{5, 10}, Mass_10B}, {{5, 11}, Mass_11B},
 	{{6, 9}, Mass_9C}, {{6, 10}, Mass_10C}, {{6, 11}, Mass_11C}, {{6, 12}, Mass_12C}, {{6, 13}, Mass_13C}, {{6, 14}, Mass_14C},
 	{{7, 11}, Mass_11N}, {{7, 12}, Mass_12N}, {{7, 13}, Mass_13N}, {{7, 14}, Mass_14N}, {{7, 15}, Mass_15N},
 	{{8, 13}, Mass_13O}, {{8, 14}, Mass_14O}, {{8, 15}, Mass_15O}, {{8, 16}, Mass_16O}, {{8, 17}, Mass_17O},
