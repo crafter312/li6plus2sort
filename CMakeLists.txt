@@ -80,7 +80,7 @@ add_custom_command(
 )
 
 add_custom_target(copy_tnlib_so ALL
-    DEPENDS ${SOFILE}
+	DEPENDS ${SOFILE}
 )
 
 

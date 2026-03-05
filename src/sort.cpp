@@ -41,7 +41,7 @@ int main() {
 	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
 
 	// TNLIB (Alex's TexNeut library) setup
-  config configFile("tnlib.config");
+  config configFile("../tnlib.config");
 	detector texneut;
   texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
 
