@@ -464,7 +464,7 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
 histo::~histo() {
   file_read->Write();
   cout << "histo written" << endl;
-  file_read->Close();
+  //file_read->Close();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

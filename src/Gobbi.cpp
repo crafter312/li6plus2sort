@@ -12,11 +12,13 @@
 
 #include "Gobbi.h"
 
+#include "constants.h"
+
 using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Gobbi::Gobbi(Input& in, histo& hist) : input(in), Histo(hist) {
+Gobbi::Gobbi(Input& in, histo& hist/*, TexNeut& tex*/) : input(in), Histo(hist)/*, texneut(tex)*/ {
   Targetdist = 23.95;//23.95;//24.1;//23.5; //cm
   TargetThickness = 2.65;//3.2;//2.65; //mg/cm^2 for CD2 tar1
   //TargetThickness = 3.8; //mg/cm^2
@@ -90,7 +92,7 @@ bool Gobbi::analyze() {
       //need to set thresholds just above noise
       //if (quad == 1 && (
 
-      if (Energy > .5 && (quad != 1 || Energy > 2))
+      if (Energy > .5) //(quad != 1 || Energy > 2)
       {
           Silicon[quad]->Front.Add(input.GetChan(i), Energy, input.GetELo(i), input.GetE(i), time);
           Silicon[quad]->multFront++;
@@ -459,13 +461,42 @@ int Gobbi::match()
   return temp;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 float Gobbi::getEnergy(int board, int chan, int Ehigh)
 {
   return Ehigh*(float)slopes[board][chan] + (float)intercepts[board][chan];
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void Gobbi::TransferNeutSols()
+{
+  neutSol.reset();
+  //neutSol.SetTargetDistance(DIST HERE);
+  //neutSol.mass = Mass_lookup[{0, 1}];
 
+  // See silicon.cpp and solution.h for examples of what kinematic values can be stored
+/*
+  neutSol.energy = texneut...;  // calibrated energy from texneut class
+  neutSol.energyR = texneut...; // raw energy from texneut class
+	neutSol.time = texneut...;    // neutron time from texneut class
+  neutSol.Xpos = texneut...;    // x position from texneut class
+  neutSol.Ypos = texneut...;    // y position from texneut class
+  neutSol.Zpos = texneut...;    // z position from texneut class
+	neutSol.theta = texneut...;   // polar angle from texneut class
+  neutSol.phi = texneut...;     // azimuthal angle from texneut class
+
+  neutSol.energyTot = neutSol.energy + neutSol.mass; // calculate total energy in MeV
+
+  // CALCULATE MOMENTUM HERE ()??
+  neutSol.Mvect[0] = ...;
+  neutSol.Mvect[1] = ...;
+  neutSol.Mvect[2] = ...;
+*/
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void Gobbi::corr_4He()
 {

@@ -36,6 +36,7 @@ void solution::reset()
   //variables filled after position() and calcEloss() from Silicon.cpp
   Xpos = -1;
   Ypos = -1;
+  Zpos = -1;
   theta = -1;
   phi = -1;
   energyTot = -1;

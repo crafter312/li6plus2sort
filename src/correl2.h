@@ -32,6 +32,7 @@ class correl2
   int N;
   solution * frag[7];
 
+  parType neutron;
   parType proton;
   parType H2;
   parType H3;

@@ -18,6 +18,9 @@
 #include "histo.h"
 #include "Input.h"
 #include "silicon.h"
+#include "solution.h"
+
+//#include "TexNeut.h"
 
 #include <iostream>
 #include <string>
@@ -52,6 +55,7 @@ public:
 
 	Input& input;
 	histo& Histo;
+	//TexNeut& texneut;
 	calibrate* FrontEcal;
 	calibrate* BackEcal;
 	calibrate* DeltaEcal;
@@ -60,6 +64,7 @@ public:
 	calibrate* DeltaTimecal;
 
 	silicon* Silicon[4];
+	solution neutSol;
 	correl2 Correl;
 
 	int counter = 0;
@@ -69,6 +74,14 @@ public:
 	int passnum = 0;
 	solution* swapfrag;
 	solution* oldfrag;
+
+private:
+
+  // This function is meant to take the neutron kinematic information
+  // from TexNeut, put it in a solution, and transfer said solution
+  // to the correl class for further analysis.
+  void TransferNeutSols();
+
 };
 
 

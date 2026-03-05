@@ -7,8 +7,6 @@
 *.o
 *.obj
 
-# temp files saved by editors
-.C~
 # Precompiled Headers
 *.gch
 *.pch
@@ -34,13 +32,24 @@
 *.app
 sort
 
-
-*.root
+# Temp. files saved by editors
 *.*~
-#numbers.*
 
 # CMake stuff
 Makefile
 CMakeCache.txt
 CMakeFiles/*
 cmake_install.cmake
+
+# All build files
+build/*
+
+# Data files
+*.root
+
+# Images
+*.eps
+*.png
+*.jpg
+*.jpeg
+*.gif

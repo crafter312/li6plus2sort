@@ -1,13 +1,16 @@
-#if !defined(MYLIB_CONSTANTS_H)
-#define MYLIB_CONSTANTS_H 1
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 #include <cmath>
+#include <unordered_map>
+#include <utility>
+
 const double m0 = 931.478;
 const double c = 30.;
-
-const double vfact = c/sqrt(m0);  //velocity (cm/ns) = vfact *sqrt(2.*E(MeV)/A(amu))
+const double vfact = c/sqrt(m0);  // velocity (cm/ns) = vfact *sqrt(2.*E(MeV)/A(amu))
 const double pi = acos(-1.);
-//masses excesses from AME2016 compilation
+
+// Masses excesses from AME2016 compilation
 const double mass_n = 8.07132;
 const double mass_p = 7.28897;
 const double mass_d = 13.13572;
@@ -54,7 +57,7 @@ const double mass_18F = .873113;
 const double mass_17Ne = 16.500447;
 const double mass_18Ne = 5.317614;
 
-//total masses
+// Total masses
 const double Mass_n = m0+mass_n;
 const double Mass_p = m0+mass_p;
 const double Mass_d = 2.*m0+mass_d;
@@ -101,5 +104,42 @@ const double Mass_18F = 18.*m0+mass_18F;
 const double Mass_17Ne = 17.*m0+mass_17Ne;
 const double Mass_18Ne = 18.*m0 + mass_18Ne;
 
+// Pair hasher required for the maps created below
+struct pair_hash {
+    inline size_t operator()(const std::pair<size_t, size_t> & v) const {
+        // A simple way to combine hashes:
+        return std::hash<size_t>{}(v.first) ^ (std::hash<size_t>{}(v.second) << 1);
+    }
+};
+
+// Lookup table for mass excesses (first index Z, second index A)
+const std::unordered_map<std::pair<size_t, size_t>, double, pair_hash> mass_lookup = {
+	{{0, 1}, mass_n},
+	{{1, 1}, mass_p}, {{1, 2}, mass_d}, {{1, 3}, mass_t},
+	{{2, 3}, mass_3He}, {{2, 4}, mass_alpha}, {{2, 6}, mass_6He}, {{2, 8}, mass_8He},
+	{{3, 5}, mass_5Li}, {{3, 6}, mass_6Li}, {{3, 7}, mass_7Li}, {{3, 8}, mass_8Li}, {{3, 9}, mass_9Li},
+	{{4, 6}, mass_6Be}, {{4, 7}, mass_7Be}, {{4, 8}, mass_8Be}, {{4, 9}, mass_9Be}, {{4, 10}, mass_10Be}, {{4, 11}, mass_11Be},
+	{{5, 8}, mass_8B}, {{5, 9}, mass_9B}, {{5, 10}, mass_10B}, {{5, 11}, mass_11B},
+	{{6, 9}, mass_9C}, {{6, 10}, mass_10C}, {{6, 11}, mass_11C}, {{6, 12}, mass_12C}, {{6, 13}, mass_13C}, {{6, 14}, mass_14C},
+	{{7, 11}, mass_11N}, {{7, 12}, mass_12N}, {{7, 13}, mass_13N}, {{7, 14}, mass_14N}, {{7, 15}, mass_15N},
+	{{8, 13}, mass_13O}, {{8, 14}, mass_14O}, {{8, 15}, mass_15O}, {{8, 16}, mass_16O}, {{8, 17}, mass_17O},
+	{{9, 14}, mass_14F}, {{9, 15}, mass_15F}, {{9, 17}, mass_17F}, {{9, 18}, mass_18F},
+	{{10, 17}, mass_17Ne}, {{10, 18}, mass_18Ne}
+};
+
+// Lookup table for total masses (first index Z, second index A)
+const std::unordered_map<std::pair<size_t, size_t>, double, pair_hash> Mass_lookup = {
+	{{0, 1}, Mass_n},
+	{{1, 1}, Mass_p}, {{1, 2}, Mass_d}, {{1, 3}, Mass_t},
+	{{2, 3}, Mass_3He}, {{2, 4}, Mass_alpha}, {{2, 6}, Mass_6He}, {{2, 8}, Mass_8He},
+	{{3, 5}, Mass_5Li}, {{3, 6}, Mass_6Li}, {{3, 7}, Mass_7Li}, {{3, 8}, Mass_8Li}, {{3, 9}, Mass_9Li},
+	{{4, 6}, Mass_6Be}, {{4, 7}, Mass_7Be}, {{4, 8}, Mass_8Be}, {{4, 9}, Mass_9Be}, {{4, 10}, Mass_10Be}, {{4, 11}, Mass_11Be},
+	{{5, 8}, Mass_8B}, {{5, 9}, Mass_9B}, {{5, 10}, Mass_10B}, {{5, 11}, Mass_11B},
+	{{6, 9}, Mass_9C}, {{6, 10}, Mass_10C}, {{6, 11}, Mass_11C}, {{6, 12}, Mass_12C}, {{6, 13}, Mass_13C}, {{6, 14}, Mass_14C},
+	{{7, 11}, Mass_11N}, {{7, 12}, Mass_12N}, {{7, 13}, Mass_13N}, {{7, 14}, Mass_14N}, {{7, 15}, Mass_15N},
+	{{8, 13}, Mass_13O}, {{8, 14}, Mass_14O}, {{8, 15}, Mass_15O}, {{8, 16}, Mass_16O}, {{8, 17}, Mass_17O},
+	{{9, 14}, Mass_14F}, {{9, 15}, Mass_15F}, {{9, 17}, Mass_17F}, {{9, 18}, Mass_18F},
+	{{10, 17}, Mass_17Ne}, {{10, 18}, Mass_18Ne}
+};
 
 #endif

@@ -4,11 +4,6 @@
 // Now skips unpacking, reads values from SpecTcl-generated ROOT file
 // (i.e. SpecTcl now does the unpacking)
 
-#include <ROOT/TBufferMerger.hxx>
-#include <ROOT/TTreeProcessorMT.hxx>
-#include <TFile.h>
-#include <TTree.h>
-
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -17,6 +12,16 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <ROOT/TBufferMerger.hxx>
+#include <ROOT/TTreeProcessorMT.hxx>
+#include <TH1I.h>
+#include <TFile.h>
+#include <TTree.h>
+
+#include <config.hpp>
+#include <detector.hpp>
+#include <eventclass.hpp>
 
 #include "Gobbi.h"
 #include "histo.h"
@@ -35,6 +40,11 @@ int main() {
 
 	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
 
+	// TNLIB (Alex's TexNeut library) setup
+  config configFile("tnlib.config");
+	detector texneut;
+  texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
+
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	ROOT::TBufferMerger merger("sort.root", "RECREATE");
 
@@ -45,22 +55,43 @@ int main() {
 	auto f = [&](TTreeReader &reader) {
 		Input input(reader);
 
+		//TexNeut tex;
+
 		// Output using thread safe file
 		auto f = merger.GetFile();
+		f->cd();
+
+		int whatever;
+
+		TH1I h("h","h",100,0,100);
+
+		TTree test("test","test");
+		test.Branch("whatever", &whatever);
 
 		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
 		// Build three classes that are used to organize and unpack each physicsevent
 		cout << "Init histo" << endl;
 		histo Histo(f);
 		cout << "Init Gobbi" << endl;
-		Gobbi gobbi(input, Histo);
+		Gobbi gobbi(input, Histo); //tex
 		cout << "Thread-wise event loop starting..." << endl;
 		// Event loop
 		while (reader.Next()) {
 			input.ReadAndRefactor();
+			//tex.CustomFillNecessary(input.getNeutMult(), input.getNeutE(), ...); // input.getNeutE(), ... -> type: std::vector<size_t>&
+			//bool good = tex.analyze();
+			//if (!good) continue;
+			//gobbi.LoadTexNeutSolution();
 			gobbi.analyze();
+
+			h.Fill(whatever);
+			whatever = input.GetNhits();
+			test.Fill();
 		}
 		cout << "Thread-wise event loop finished!" << endl;
+
+		f->cd();
+		f->WriteTObject(&h, "h", "WriteDelete");
 	};
 
 	ifstream runFile;
