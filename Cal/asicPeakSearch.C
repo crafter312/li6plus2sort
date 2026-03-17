@@ -12,14 +12,14 @@
  *
  * Usage: root[] .L asicPeakSearch.C++                         <-- load this stuff
  * Possible uses:
- *        root[] findPeaksFromHistogramFile("/path/to/file/with/histograms.root","Up","Sector","4peak",1,kFALSE)  <-- process histograms in given file
- *        root[] findPeaksFromTree("/path/to/file/with/tree.root","Up","Sector","4peak",1,kFALSE)                 <-- process tree in given file
- *        root[] findPeaksFromChain(nameOfTheChain,"Up","Sector","4peak",1,kFALSE)                                <-- process tree in given chain of files
+ *        root[] findPeaksFromHistogramFile("/path/to/file/with/histograms.root","Up","Sector","5peak",1,kFALSE)  <-- process histograms in given file
+ *        root[] findPeaksFromTree("/path/to/file/with/tree.root","Up","Sector","5peak",1,kFALSE)                 <-- process tree in given file
+ *        root[] findPeaksFromChain(nameOfTheChain,"Up","Sector","5peak",1,kFALSE)                                <-- process tree in given chain of files
  *        arguments required:
  *          inputFile = file with the data tree, should work for any file with a TTree object. In case multiple trees per file, the first is taken.
  *          detector = Up/Down (defaults to Up)
  *          detectorSide = Sector/Ring (defaults to Sector)
- *          source = 4peak/Ra226/pulser (defaults to 4peak)
+ *          source = 5peak/Ra226/pulser (defaults to 5peak)
  *          rebinFactor = 1 (defaults to 1)
  *          testing = kFALSE/kTRUE (not really used after debugging, defaults to kFALSE)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -38,6 +38,7 @@
 #include "TStopwatch.h"
 #include "TTree.h"
 #include "TChain.h"
+#include <string>
 
 
 TObject *obj;
@@ -55,7 +56,7 @@ Double_t gausPeak(Double_t *x,Double_t *par){
 
 
 
-void findPeaksFromHistogramFile(TString inputFile="FileWithRawHistograms.root", TString detector = "Front", TString source="4peak", Int_t rebinFactor=1, Bool_t testing=kFALSE){
+void findPeaksFromHistogramFile(TString inputFile="HINPEs.root", TString detector = "Front", TString source="5peak", Int_t rebinFactor=2, Bool_t testing=kTRUE){
   
   histoFile = TFile::Open(inputFile,"READ");
   cout << "Opening file: " << histoFile->GetName() << endl;
@@ -66,7 +67,11 @@ void findPeaksFromHistogramFile(TString inputFile="FileWithRawHistograms.root", 
   Int_t numChips = 0;
   Int_t numChans = 32; // fix this to default per chip
   Int_t numDetectorElements = 0;
+
+  TString histoprefix = "SpecTcl_hinp1_mb1_e_";
   
+
+  //Not using histopath for the spectcl tree files unpacked by HINPtree_unpack.C
   TString histoPath = ""; // histogram path in the TFile, hardcoded to match the offline sort
 
   if (detector.Contains("Front") == kTRUE) {
@@ -89,8 +94,8 @@ void findPeaksFromHistogramFile(TString inputFile="FileWithRawHistograms.root", 
     numPeaks = 5;
   }
   
-  if (source.Contains("4peak") == kTRUE) {
-    numPeaks = 4;
+  if (source.Contains("5peak") == kTRUE) {
+    numPeaks = 5;
   }
 
   if (source.Contains("LiAu") == kTRUE) {
@@ -149,41 +154,62 @@ void findPeaksFromHistogramFile(TString inputFile="FileWithRawHistograms.root", 
   {
     for(int ic=0;ic<numChans;ic++) //each has 32 chan
     {
+
       int nDetElement = (ib*32+1)+ic;
 
-      if (testing==kTRUE) {
-        cout << "histoPath: " << histoPath.Data() << " detector: " << detector.Data() << " nDetElemet: " << nDetElement << " board " << ib << " chan " << ic << endl;
-      }
+      //if (testing==kTRUE) {
+        //cout << "histoPath: " << histoPath.Data() << " detector: " << detector.Data() << " nDetElemet: " << nDetElement << " board " << ib << " chan " << ic << endl;
+      //}
     
       TString histoName;
-      histoName.Append(histoPath);
+      /*histoName.Append(histoPath);
       //histoName.Append(detector);
       //histoName.Append("E_R");
       //histoName.Append("AngleCorrE_R");
       //histoName.Append("FrontTime_R");
       histoName.Append(TString::Itoa(ib,10));
       histoName.Append("_");
-      histoName.Append(TString::Itoa(ic,10));
-          
+      histoName.Append(TString::Itoa(ic,10));*/
+
+
+      histoName.Append(histoprefix);
+      if (detector.Contains("Front") == kTRUE) histoName.Append("0");
+      if (detector.Contains("Front") == kTRUE) histoName.Append(std::to_string((ib+1)*2 -1));
+      if (detector.Contains("Front") == kTRUE) histoName.Append(".");
+      if (detector.Contains("Front") == kTRUE && ic < 10) histoName.Append("0");
+      if (detector.Contains("Front") == kTRUE) histoName.Append(std::to_string(ic));
+
+      if (detector.Contains("Back") == kTRUE) histoName.Append("0");
+      if (detector.Contains("Back") == kTRUE) histoName.Append(std::to_string((ib+1)*2));
+      if (detector.Contains("Back") == kTRUE) histoName.Append(".");
+      if (detector.Contains("Back") == kTRUE && ic < 10) histoName.Append("0");
+      if (detector.Contains("Back") == kTRUE) histoName.Append(std::to_string(ic));
+
+      if (detector.Contains("Delta") == kTRUE && ib < 1) histoName.Append("0");
+      if (detector.Contains("Delta") == kTRUE) histoName.Append(std::to_string(ib+9));
+      if (detector.Contains("Delta") == kTRUE) histoName.Append(".");
+      if (detector.Contains("Delta") == kTRUE && ic < 10) histoName.Append("0");
+      if (detector.Contains("Delta") == kTRUE) histoName.Append(std::to_string(ic));
+
       if (testing==kTRUE) {
         cout << "Histogram name: " << histoName.Data() << endl;
       }
-      
+
       TH1F *h1 = (TH1F*)gDirectory->Get(histoName.Data());
       
       h1->Rebin(rebinFactor);
       
       if(source.Contains("Ra226") == kTRUE && detector.Contains("Front") == kTRUE)
-        h1->GetXaxis()->SetRangeUser(400,1500);
+        h1->GetXaxis()->SetRangeUser(300,1500);
       if(source.Contains("Ra226") == kTRUE && detector.Contains("Back") == kTRUE)
-        h1->GetXaxis()->SetRangeUser(600,1500);
+        h1->GetXaxis()->SetRangeUser(400,1500);
       if(source.Contains("Ra226") == kTRUE && detector.Contains("Delta") == kTRUE)
-        h1->GetXaxis()->SetRangeUser(600,1300);
-      if(source.Contains("4peak") == kTRUE && detector.Contains("Front"))
-        h1->GetXaxis()->SetRangeUser(350,1100);
-      if(source.Contains("4peak") == kTRUE && detector.Contains("Back"))
-        h1->GetXaxis()->SetRangeUser(400,1200);
-      if(source.Contains("4peak") == kTRUE && detector.Contains("Delta"))
+        h1->GetXaxis()->SetRangeUser(300,1300);
+      if(source.Contains("5peak") == kTRUE && detector.Contains("Front"))
+        h1->GetXaxis()->SetRangeUser(200,1300);
+      if(source.Contains("5peak") == kTRUE && detector.Contains("Back"))
+        h1->GetXaxis()->SetRangeUser(400,1300);
+      if(source.Contains("5peak") == kTRUE && detector.Contains("Delta"))
         h1->GetXaxis()->SetRangeUser(400,1050);
       if(source.Contains("LiAu") == kTRUE && detector.Contains("Front"))
         h1->GetXaxis()->SetRangeUser(4000,6000);
@@ -235,15 +261,15 @@ void findPeaksFromHistogramFile(TString inputFile="FileWithRawHistograms.root", 
         par[1] = xp;
         par[2] = 1.;
         
-        //TF1 *peak = new TF1("peak",gausPeak,xp-10.,xp+10.,3);
+        TF1 *peak = new TF1("peak",gausPeak,xp-10.,xp+10.,3);
         //TF1 *peak = new TF1("peak",gausPeak,xp-140.,xp+140.,3); //need wider fit range for Li beam
-        TF1 *peak = new TF1("peak",gausPeak,xp-50.,xp+50.,3); //setting used for timing
+        //TF1 *peak = new TF1("peak",gausPeak,xp-50.,xp+50.,3); //setting used for timing
 
         peak->SetParameters(&par[0]);
         
-        //h1->Fit("peak","RQ+","",xp-10,xp+10);
+        h1->Fit("peak","RQ+","",xp-10,xp+10);
         //h1->Fit("peak","RQ+","",xp-140,xp+140); //need wider fit range for Li beam
-        h1->Fit("peak","RQ+","",xp-50,xp+50); //setting used for timing
+        //h1->Fit("peak","RQ+","",xp-50,xp+50); //setting used for timing
 
         // h1->Fit("peak","R");
         //gaus->GetParameters(par  histoFile = TFile::Open(inputFile,"READ"););

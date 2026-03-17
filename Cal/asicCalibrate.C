@@ -61,20 +61,20 @@ void calibrate(TString detector="Front"){
 
   if (detector.Contains("Front"))
   {
-    inputFile1 = "peakpositions_Front_4peak.txt";
-    inputFile2 = "peakpositions_Front_Ra226.txt";
-    inputFile3 = "peakpositions_Front_LiAu.txt";
+    inputFile1 = "peakpositions_Front_5peak_saveMarch16.txt";
+    //inputFile2 = "peakpositions_Front_Ra226.txt";
+    //inputFile3 = "peakpositions_Front_LiAu.txt";
   }
   if (detector.Contains("Back"))
   {
-    inputFile1 = "peakpositions_Back_4peak.txt";
-    inputFile2 = "peakpositions_Back_Ra226.txt";
+    inputFile1 = "peakpositions_Back_5peak_saveMarch16.txt";
+    //inputFile2 = "peakpositions_Back_Ra226.txt";
   }
   if (detector.Contains("Delta"))
   {
-    inputFile1 = "peakpositions_Delta_4peak.txt";
-    inputFile2 = "peakpositions_Delta_Ra226.txt";
-    inputFile3 = "peakpositions_Delta_LiAu.txt";
+    inputFile1 = "peakpositions_Delta_5peak_saveMarch16.txt";
+    //inputFile2 = "peakpositions_Delta_Ra226.txt";
+    //inputFile3 = "peakpositions_Delta_LiAu.txt";
   }
 
   cout << "Read in: inputFile = " << inputFile1 << " and File " << inputFile2 << ", detector = " << detector << ", polynomial degree = " << polDeg << endl;
@@ -89,12 +89,12 @@ void calibrate(TString detector="Front"){
   fout.open(outFileName);
   
   int numDetectorElements = 4*32;
-  int numPeaks = 4+5;
+  int numPeaks = 5;
 
-  if (detector.Contains("Front") || detector.Contains("Delta"))
-  {
-    numPeaks++;
-  }
+  //if (detector.Contains("Front") || detector.Contains("Delta"))
+  //{
+    //numPeaks++;
+  //}
   
   Double_t chisqdarray[numDetectorElements], stripno[numDetectorElements], residualarray[numDetectorElements][numPeaks], peaks[numPeaks], alphastemp[numPeaks], alphas[numDetectorElements][numPeaks], peakerr[numPeaks], alphastemperr[numPeaks], alphaserr[numDetectorElements][numPeaks];
   Double_t tempcalcval[numPeaks];
@@ -115,83 +115,90 @@ void calibrate(TString detector="Front"){
   
   for (Int_t i=0; i<numDetectorElements; i++) {
    
-    alphas[i][0] = 5795.,alphas[i][1] = 5479.3, alphas[i][2] = 5148.4, alphas[i][3] = 3182.7; // Lit. values as per NNDC. In case of Cm, Am and Pu energies are weighted averages of     alphas[i][0] = 5795.,alphas[i][1] = 5479.3, alphas[i][2] = 5148.4, alphas[i][3] = 3182.7; // Lit. values as permajor lines as those do not resolve to separate lines
-    alphaserr[i][0] = 1.0, alphaserr[i][1] = 1.0,alphaserr[i][2] = 1.0,alphaserr[i][3] = 1.0;
+    //alphas[i][0] = 5804.,alphas[i][1]=5762.,alphas[i][2] = 5479.3, alphas[i][3] = 5153.6, alphas[i][4] = 3182.7; // Lit. values as per NNDC. Am and Pu energies are weighted averages      alphas[i][0] = 5795.,alphas[i][1] = 5479.3, alphas[i][2] = 5148.4, alphas[i][3] = 3182.7; // Lit. values as permajor lines as those do not resolve to separate lines
+    alphas[i][0] = 5804.,alphas[i][1]=5804.,alphas[i][2] = 5479.3, alphas[i][3] = 5153.6, alphas[i][4] = 3182.7; // Lit. values as per NNDC. Am and Pu energies are weighted averages      alphas[i][0]
+    //alphas[i][0] = 7686,alphas[i][1]=6002.,alphas[i][2] = 5489., alphas[i][3] = 5304., alphas[i][4] = 4784.;
+    alphaserr[i][0] = 1.0, alphaserr[i][1] = 1.0,alphaserr[i][2] = 1.0,alphaserr[i][3] = 1.0,alphaserr[i][4] = 1.0;
 
-    alphas[i][4] = 7686.82, alphas[i][5] = 6002.55, alphas[i][6] = 5489.48, alphas[i][7] = 5304.33, alphas[i][8] = 4784.34;
-    alphaserr[i][4] = 1.0, alphaserr[i][5] = 1.0,alphaserr[i][6] = 1.0,alphaserr[i][7] = 1.0,alphaserr[i][8] = 1.0;
+    //alphas[i][4] = 7686.82, alphas[i][5] = 6002.55, alphas[i][6] = 5489.48, alphas[i][7] = 5304.33, alphas[i][8] = 4784.34;
+    //alphaserr[i][4] = 1.0, alphaserr[i][5] = 1.0,alphaserr[i][6] = 1.0,alphaserr[i][7] = 1.0,alphaserr[i][8] = 1.0;
 
-    alphas[i][9] = 34369.04*0.98;
+    //alphas[i][9] = 34369.04*0.98;
     
-    if (detector.Contains("Delta"))
-      alphas[i][9] = 7665.0;
+    //if (detector.Contains("Delta"))
+      //alphas[i][9] = 7665.0;
 
-    alphaserr[i][9] = 1.0;
+    //alphaserr[i][9] = 1.0;
 
   }
 
 
   ifstream fin1;
   fin1.open(inputFile1);
-  ifstream fin2;
-  fin2.open(inputFile2);
-  ifstream fin3;
-  if (detector.Contains("Front") || detector.Contains("Delta"))
-  {
-    fin3.open(inputFile3);
-  }
+  //ifstream fin2;
+  //fin2.open(inputFile2);
+  //ifstream fin3;
+  //if (detector.Contains("Front") || detector.Contains("Delta"))
+  //{
+    //fin3.open(inputFile3);
+  //}
 
   for(Int_t i=0; i<numDetectorElements; i++){
     cout << "\n\nDoing detector element " << i+1 << endl;
     stripno[i] = i+1;
     Int_t ch;
     fin1 >> ch;
-    fin2 >> ch;
-    fin3 >> ch;
+    //fin2 >> ch;
+    //fin3 >> ch;
 
-    for (Int_t j=0; j<4; j++) {
+    for (Int_t j=0; j<5; j++) {
       fin1 >> peaks[j] >> peakerr[j];
       peakerr[j] = 1;
       tenparray[j][i+1] = peaks[j];
       tenparrayerr[j][i+1] = peakerr[j];
     }
-    for (Int_t j=0; j<5; j++) {
+    //for (Int_t j=0; j<5; j++) {
       
-      fin2 >> peaks[j+4] >> peakerr[j+4];
-      peakerr[j+4] = 1;
-      tenparray[j+4][i+1] = peaks[j+4];
-      tenparrayerr[j+4][i+1] = peakerr[j+4];
-    }
+      //fin2 >> peaks[j+4] >> peakerr[j+4];
+      //peakerr[j+4] = 1;
+      //tenparray[j+4][i+1] = peaks[j+4];
+      //tenparrayerr[j+4][i+1] = peakerr[j+4];
+    //}
 
     //only keep if you are doing fronts with LiAu file
-    fin3 >> peaks[9] >> peakerr[9];
-    peakerr[9] = 1;
-    tenparray[9][i+1] = peaks[9];
-    tenparrayerr[9][i+1] = peakerr[9];
+    //fin3 >> peaks[9] >> peakerr[9];
+    //peakerr[9] = 1;
+    //tenparray[9][i+1] = peaks[9];
+    //tenparrayerr[9][i+1] = peakerr[9];
 
     bool zeros = false;
     for (Int_t j=0; j<numPeaks; j++) {
       if (peaks[j] == 0)
         zeros = true;
     }
-    if (zeros) continue;
+    if (zeros) {
+      int board0 = i/32;
+      int chip0 = i%32;
+      fout << board0 << " " << chip0 << " " << 0 << " " << 0 << endl;
+      continue;
+    } 
 
     cout << "read peaks: ";
-    for (Int_t j=0; j<4; j++){ cout << peaks[j] << " " << peakerr[j] << "  " <<  tenparray[j][i+1] << " " << tenparrayerr[j][i+1] << "  " ;}
-    for (Int_t j=0; j<5; j++){ cout << peaks[j+4] << " " << peakerr[j+4] << "  " <<  tenparray[j+4][i+1] << " " << tenparrayerr[j+4][i+1] << "  " ;}
-    cout << peaks[9] << " " << peakerr[9] << "  " <<  tenparray[9][i+1] << " " << tenparrayerr[9][i+1] << "  " ;
+    for (Int_t j=0; j<5; j++){ cout << peaks[j] << " " << peakerr[j] << "  " <<  tenparray[j][i+1] << " " << tenparrayerr[j][i+1] << "  " ;}
+   // for (Int_t j=0; j<5; j++){ cout << peaks[j+4] << " " << peakerr[j+4] << "  " <<  tenparray[j+4][i+1] << " " << tenparrayerr[j+4][i+1] << "  " ;}
+  //  cout << peaks[9] << " " << peakerr[9] << "  " <<  tenparray[9][i+1] << " " << tenparrayerr[9][i+1] << "  " ;
 
     cout << "\n";
       
     // hack here to get the energies to smaller array expected by TGraph...
     
-    for (Int_t j=0; j<4; j++) {
+    for (Int_t j=0; j<5; j++) {
       alphastemp[j] = alphas[i][j];
       tenparray[j][0] = alphastemp[j];
       alphastemperr[j] = alphaserr[i][j];
       tenparrayerr[j][0] = alphastemperr[j];
     }
-    for (Int_t j=0; j<5; j++) {
+    /*for (Int_t j=0; j<5; j++) {
       alphastemp[j+4] = alphas[i][j+4];
       tenparray[j+4][0] = alphastemp[j+4];
       alphastemperr[j+4] = alphaserr[i][j+4];
@@ -200,16 +207,16 @@ void calibrate(TString detector="Front"){
     alphastemp[9] = alphas[i][9];
     tenparray[9][0] = alphastemp[9];
     alphastemperr[9] = alphaserr[i][9];
-    tenparrayerr[9][0] = alphastemperr[9];
+    tenparrayerr[9][0] = alphastemperr[9];*/
 
 
     cout << "alphas temp peaks: ";
     for (Int_t j=0; j<numPeaks; j++){ cout << alphastemp[j] << " " << alphastemperr[j] << "  ";}
     cout << "\n";
       
-    TGraph *g1 = new TGraph(numPeaks,peaks,alphastemp);
+   // TGraph *g1 = new TGraph(numPeaks,peaks,alphastemp);
     //TGraphErrors *g1err = new TGraphErrors(numPeaks,peaks,alphastemp,peakerr,alphastemperr);
-    TGraphErrors *g1err = new TGraphErrors(2,peaks,alphastemp,peakerr,alphastemperr);
+    TGraphErrors *g1err = new TGraphErrors();
       //TGraph *g2 = new TGraph(24,stripno,chisqdarray);
 
     /*
@@ -225,14 +232,26 @@ void calibrate(TString detector="Front"){
     //g1err->SetPoint(0, peaks[3], alphastemp[3]);
     //g1err->SetPointError(0, peakerr[3], alphastemperr[3]);
 
-    g1->SetPoint(0, peaks[4], alphastemp[4]);
-    g1err->SetPoint(0, peaks[4], alphastemp[4]);
-    g1err->SetPointError(0, peakerr[4], alphastemperr[4]);
+    //g1->SetPoint(0, peaks[4], alphastemp[4]);
+    //g1err->SetPoint(0, peaks[4], alphastemp[4]);
+    //g1err->SetPointError(0, peakerr[4], alphastemperr[4]);
 
-    g1->SetPoint(1, peaks[9], alphastemp[9]);
-    g1err->SetPoint(1, peaks[9], alphastemp[9]);
-    g1err->SetPointError(1, peakerr[9], alphastemperr[9]);
+    //g1->SetPoint(1, peaks[9], alphastemp[9]);
+    //g1err->SetPoint(1, peaks[9], alphastemp[9]);
+    //g1err->SetPointError(1, peakerr[9], alphastemperr[9]);
 
+    g1err->SetPoint(0,peaks[1],alphastemp[1]);
+    g1err->SetPointError(0, peakerr[1], alphastemperr[1]);
+    g1err->SetPoint(1,peaks[2],alphastemp[2]);
+    g1err->SetPointError(2, peakerr[2], alphastemperr[2]);
+    g1err->SetPoint(2,peaks[3],alphastemp[3]);
+    g1err->SetPointError(3, peakerr[3], alphastemperr[3]);
+    g1err->SetPoint(3,peaks[4],alphastemp[4]);
+    g1err->SetPointError(4, peakerr[4], alphastemperr[4]);
+
+
+    g1err->SetMarkerStyle(20);
+    g1err->SetMarkerSize(1.5);
     
     if (polDeg == 1 ) {
       //if (i == 4 ) { TF1 *f1 = new TF1("f1","pol1",100.,7675.); g1err->Fit("f1","R");}
@@ -284,7 +303,7 @@ void calibrate(TString detector="Front"){
   
   fout.close();
   fin1.close();
-  fin2.close();
+  //fin2.close();
 
   TFile * outfile = new TFile("linearfit.root", "RECREATE");
   outfile->cd();
