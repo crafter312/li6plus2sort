@@ -8,6 +8,8 @@
 
 #include "Input.h"
 
+#include <cmath>
+
 using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -72,7 +74,7 @@ void Input::ReadAndRefactor() {
 			index = (board * CHAN_COUNT) + chan; // make sure this matches the order from GenerateColumnNames
 			e = *(eRVs[index]);
 
-			if (std::isnan(e) || (e == 0)) continue;
+			if (isnan(e) || (e == 0)) continue;
 			Nhits++;
 			hits_board.push_back(board+1);
 			hits_chan.push_back(chan);

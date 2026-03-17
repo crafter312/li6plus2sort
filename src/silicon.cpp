@@ -10,11 +10,7 @@ silicon::silicon(float thick0, SortConfig& config)
 {
   TargetThickness = thick0;
   SiWidth = 6.45;
-  //switch which loss file is used depending on the target.
-  losses = new CLosses(6,"_CD2.loss");
-  //losses = new CLosses(6,"_CH2.loss");
-  //losses = new CLosses(6,"_C.loss");
-  //losses = new CLosses(6,"_Au.loss");
+  losses = new CLosses(6, config);
   Ran = new TRandom();
 }
 
