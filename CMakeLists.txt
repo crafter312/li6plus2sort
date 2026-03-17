@@ -21,7 +21,7 @@ set(CMAKE_INSTALL_LIBDIR ${PROJECT_BINARY_DIR}/lib)
 set(SOFILE ${CMAKE_BINARY_DIR}/libTNLIB.so)
 
 # Set project sources
-set(SOURCES Gobbi.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp solution.cpp pid.cpp ZApar.cpp einstein.cpp losses.cpp loss2.cpp correl2.cpp parType.cpp calibrate.cpp Input.cpp)
+set(SOURCES SortConfig.cpp Gobbi.cpp histo.cpp HINP.cpp silicon.cpp elist.cpp solution.cpp pid.cpp ZApar.cpp einstein.cpp losses.cpp loss2.cpp correl2.cpp parType.cpp calibrate.cpp Input.cpp)
 
 list(TRANSFORM SOURCES PREPEND ${SRC}/)
 
@@ -56,7 +56,11 @@ add_dependencies(TNLIB_IMPORTED tnlib)
 # Create an OBJECT library to handle the generated sources (with sim class)
 add_library(Li6sortObjects OBJECT ${SOURCES})
 set_target_properties(Li6sortObjects PROPERTIES EXCLUDE_FROM_ALL TRUE)
-target_link_libraries(Li6sortObjects ROOT::RIO ROOT::Tree ROOT::Hist ROOT::TreePlayer ROOT::Core ROOT::Imt ROOT::Thread ROOT::MultiProc)
+target_link_libraries(Li6sortObjects TNLIB_IMPORTED ROOT::RIO ROOT::Tree ROOT::Hist ROOT::TreePlayer ROOT::Core ROOT::Imt ROOT::Thread ROOT::MultiProc)
+set_target_properties(Li6sortObjects PROPERTIES
+	BUILD_RPATH "${CMAKE_BINARY_DIR}"
+	INSTALL_RPATH "${CMAKE_BINARY_DIR}"
+)
 
 # Create sort executable
 add_executable(sort ${SRC}/sort.cpp $<TARGET_OBJECTS:Li6sortObjects>)

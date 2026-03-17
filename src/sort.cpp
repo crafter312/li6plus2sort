@@ -5,6 +5,7 @@
 // (i.e. SpecTcl now does the unpacking)
 
 #include <ctime>
+#include <exception>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -22,10 +23,12 @@
 #include <config.hpp>
 #include <detector.hpp>
 #include <eventclass.hpp>
+#include <stuffing.hpp>
 
 #include "Gobbi.h"
 #include "histo.h"
 #include "Input.h"
+#include "SortConfig.h"
 
 using namespace std;
 
@@ -35,18 +38,20 @@ int main() {
 	t = clock();
 
 	// Enable implicit multi-threading
-	int nthreads = 1;
+	int nthreads = 4;
 	ROOT::EnableImplicitMT(nthreads);
 
-	string directory = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/"; //TODO: replace with CMake/compile-time variable, make sure is correct directory post-experiment
+	// Load config file for sort code
+	SortConfig sortConfig("../sort.config");
 
 	// TNLIB (Alex's TexNeut library) setup
-  config configFile("../tnlib.config");
+  config configFile(sortConfig.GetTnlibConfig());
 	detector texneut;
   texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
-	ROOT::TBufferMerger merger("sort.root", "RECREATE");
+	string ofname = configFile.GetOutputDir() + sortConfig.GetOfileName();
+	ROOT::TBufferMerger merger(ofname.c_str(), "RECREATE");
 
 	// Define the function that will process a subrange of the tree.
 	// The function must receive only one parameter, a TTreeReader,
@@ -63,9 +68,10 @@ int main() {
 
 		int whatever;
 
-		TH1I h("h","h",100,0,100);
+		TH1I h("h", "h", 100, 0, 100);
 
-		TTree test("test","test");
+		const char* otname = sortConfig.GetOtreeName().c_str();
+		TTree test(otname, otname);
 		test.Branch("whatever", &whatever);
 
 		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
@@ -73,7 +79,7 @@ int main() {
 		cout << "Init histo" << endl;
 		histo Histo(f);
 		cout << "Init Gobbi" << endl;
-		Gobbi gobbi(input, Histo); //tex
+		Gobbi gobbi(input, Histo, sortConfig); //tex
 		cout << "Thread-wise event loop starting..." << endl;
 		// Event loop
 		while (reader.Next()) {
@@ -94,10 +100,12 @@ int main() {
 		f->WriteTObject(&h, "h", "WriteDelete");
 	};
 
-	ifstream runFile;
-	runFile.open("numbers.beam");
+  string runNumbersFile = sortConfig.GetRunNumbersFile();
+	ifstream runFile(runNumbersFile);
+	if (runFile.fail()) throw invalid_argument(string(BOLDRED) + string("Run numbers file ") + runNumbersFile + std::string(" does not exist or failed to open") + std::string(RESET));
 
 	// Loop through run numbers
+	string itname = sortConfig.GetItreeName();
 	int runnum;
 	ostringstream datastring;
 	for (;;) {
@@ -105,7 +113,7 @@ int main() {
 		if (runFile.eof() || runFile.bad()) break;
 
 		datastring.str("");
-		datastring << directory << "run-" << runnum << ".root"; //TODO: make sure to match SpecTcl output file name format, (use setfill('0') << setw(4) or something similar if necessary)
+		datastring << configFile.GetTNDataDir() << "run-" << runnum << ".root"; //TODO: make sure to match SpecTcl output file name format, (use setfill('0') << setw(4) or something similar if necessary)
 
 		// Check status of input run data file
 		size_t numentries;
@@ -117,9 +125,9 @@ int main() {
 			}
 
 			// Check if tree exists in the file
-			TTree *tree = (TTree*)file->Get("t");
+			TTree *tree = (TTree*)file->Get(itname.c_str());
 			if (!tree) {
-				cerr << "Tree 't' not found in file for run " << runnum << "!" << endl;
+				cerr << "Tree '" << itname << "' not found in file for run " << runnum << "!" << endl;
 				file->Close();
 				continue;
 			}
@@ -130,7 +138,7 @@ int main() {
 		cout << "Processing TTree in file: " << datastring.str() << " (" << numentries << ")" << endl;
 
 		// Create a TTreeProcessorMT: this class orchestrates the parallel processing of an input tree
-		ROOT::TTreeProcessorMT tp(datastring.str().c_str(), "t");
+		ROOT::TTreeProcessorMT tp(datastring.str().c_str(), itname.c_str());
 
 		// Execute multi-threaded tree processing
 		tp.Process(f);

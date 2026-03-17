@@ -12,6 +12,7 @@
 #include "solution.h"
 #include "pid.h"
 #include "losses.h"
+#include "SortConfig.h"
 using namespace std;
 
 /*
@@ -27,7 +28,7 @@ struct lines
 class silicon
 {
  public:
-  silicon(float);
+  silicon(float, SortConfig&);
   ~silicon();
   void reset();
   void init(int);

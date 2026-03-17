@@ -18,23 +18,24 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Gobbi::Gobbi(Input& in, histo& hist/*, TexNeut& tex*/) : input(in), Histo(hist)/*, texneut(tex)*/ {
+Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config/*, TexNeut& tex*/) : input(in), Histo(hist)/*, texneut(tex)*/ {
   Targetdist = 23.95;//23.95;//24.1;//23.5; //cm
   TargetThickness = 2.65;//3.2;//2.65; //mg/cm^2 for CD2 tar1
   //TargetThickness = 3.8; //mg/cm^2
 
   for (int id = 0; id < 4; id++) {
-    Silicon[id] = new silicon(TargetThickness);
+    Silicon[id] = new silicon(TargetThickness, config);
     Silicon[id]->init(id); //tells Silicon what position it is in
     Silicon[id]->SetTargetDistance(Targetdist);
   }
 
-  FrontEcal = new calibrate(4, Histo.channum, "Cal/FrontEcal.dat", 1, true);
-  BackEcal = new calibrate(4, Histo.channum, "Cal/BackEcal.dat", 1, true);
-  DeltaEcal = new calibrate(4, Histo.channum, "Cal/DeltaEcal.dat", 1, true);
-  FrontTimecal = new calibrate(4, Histo.channum, "Cal/FrontTimecal.dat",1, false);
-  BackTimecal = new calibrate(4, Histo.channum, "Cal/BackTimecal.dat",1, false);  
-  DeltaTimecal = new calibrate(4, Histo.channum, "Cal/DeltaTimecal.dat",1, false);
+  string calDir = config.GetCalDir();
+  FrontEcal = new calibrate(4, Histo.channum, calDir + config.GetFrontEcalFile(), 1, true);
+  BackEcal = new calibrate(4, Histo.channum, calDir + config.GetBackEcalFile(), 1, true);
+  DeltaEcal = new calibrate(4, Histo.channum, calDir + config.GetDeltaEcalFile(), 1, true);
+  FrontTimecal = new calibrate(4, Histo.channum, calDir + config.GetFrontTimecalFile(),1, false);
+  BackTimecal = new calibrate(4, Histo.channum, calDir + config.GetBackTimecalFile(),1, false);  
+  DeltaTimecal = new calibrate(4, Histo.channum, calDir + config.GetDeltaTimecalFile(),1, false);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -10,11 +10,12 @@ using namespace std;
 \param mass0 is mass of particle in amu
 */
 
-CLosses::CLosses(int Zmax0,string suffix)
+CLosses::CLosses(int Zmax0, SortConfig& config)
 {
   Zmax = Zmax0;
+  string path = config.GetLossDir();
+  string suffix = "_" + config.GetTargetSuffix() + ".loss";
   string filename;
-  string path = "LossFiles/";
   loss = new CLoss2 * [Zmax];
   for (int iZ = 1;iZ <= Zmax;iZ++)
   {

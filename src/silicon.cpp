@@ -6,7 +6,7 @@ using namespace std;
 
 //**********************************************************
   //constructor
-silicon::silicon(float thick0)
+silicon::silicon(float thick0, SortConfig& config)
 {
   TargetThickness = thick0;
   SiWidth = 6.45;

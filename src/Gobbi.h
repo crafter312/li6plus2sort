@@ -19,6 +19,7 @@
 #include "Input.h"
 #include "silicon.h"
 #include "solution.h"
+#include "SortConfig.h"
 
 //#include "TexNeut.h"
 
@@ -28,7 +29,7 @@
 class Gobbi {
 
 public:
-	Gobbi(Input&, histo&);
+	Gobbi(Input&, histo&, SortConfig&);
 	~Gobbi();
 
 	bool analyze();

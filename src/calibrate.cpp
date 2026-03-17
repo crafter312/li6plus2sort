@@ -1,5 +1,9 @@
 #include "calibrate.h"
-#include "math.h"
+//#include "math.h"
+
+#include <exception>
+
+#include <stuffing.hpp>
 
 /**
  * Constructor
@@ -22,12 +26,8 @@ calibrate::calibrate(int Ntele0, int Nstrip0, string name, int order0, bool weav
     Coeff[i] = new coeff [Nstrip];
   }
 
-  ifstream file(name.c_str());
-  if (file.is_open() != 1)
-  {
-    cout << " could not open calibration file " << name << endl;
-    abort();
-  }
+  ifstream file(name);
+	if (file.fail()) throw invalid_argument(string(BOLDRED) + string("Calibration file ") + name + string(" does not exist or failed to open") + string(RESET));
 
   string title;
   //  getline(file,title);
