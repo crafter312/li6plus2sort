@@ -16,15 +16,15 @@ CLosses::CLosses(int Zmax0, SortConfig& config)
   string path = config.GetLossDir();
   string suffix = "_" + config.GetTargetSuffix() + ".loss";
   string filename;
-  loss = new CLoss2 * [Zmax];
+  loss = new CLoss2 * [Zmax+1];
   for (int iZ = 1;iZ <= Zmax;iZ++)
   {
     if (iZ == 1)        filename = path + "Hydrogen" + suffix;
     else if (iZ == 2)   filename = path + "Helium" + suffix;
     else if (iZ == 3)   filename = path + "Lithium" + suffix;
-    else if (iZ == 4)   filename = path + "Beryllium" + suffix;
-    else if (iZ == 5)   filename = path + "Boron" + suffix;
-    else if (iZ == 6)   filename = path + "Carbon" + suffix;
+    //else if (iZ == 4)   filename = path + "Beryllium" + suffix;
+    //else if (iZ == 5)   filename = path + "Boron" + suffix;
+    //else if (iZ == 6)   filename = path + "Carbon" + suffix;
     //else if (iZ == 7)   filename = path + "Nitrogen" + suffix;
     //else if (iZ == 8)   filename = path + "Oxygen" + suffix;
     //else if (iZ == 9)   filename = path + "Fluorine" + suffix;
@@ -37,6 +37,7 @@ CLosses::CLosses(int Zmax0, SortConfig& config)
 
     //      cout << filename << endl; 
     loss[iZ] = new CLoss2 (filename);
+    //cout << iZ << endl;
   }
 }
 

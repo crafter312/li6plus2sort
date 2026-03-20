@@ -33,6 +33,12 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   dir1dBackTime_R  = dirSummary->mkdir("1dBackTime_R","1dBackTime_R");
   dir1dDeltaTime_R = dirSummary->mkdir("1dDeltaTime_R","1dDeltaTime_R");
 
+	//Directory for diamond detector
+  dirDiamond = new TDirectoryFile("dirDiamond", "dirDiamond"); // name, title
+
+	//Directory for diamond detector
+  dirTDC = new TDirectoryFile("dirTDC", "dirTDC"); // name, title
+
   // Directory for DeltaE-E plots
   dirDEEplots = new TDirectoryFile("DEEplots","DEEplots");
   dirhitmaps  = new TDirectoryFile("hitmaps","hitmaps");
@@ -216,7 +222,21 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
     }
   }
 
-
+	//Diamond detector plots
+	dirDiamond->cd();
+	DiamondQDC0 = new TH1I("DiamondQDC0","",1024,0,4192);
+	DiamondQDC1 = new TH1I("DiamondQDC1","",1024,0,4192);
+	
+	DiamondQDC0_tgate_orA = new TH1I("DiamondQDC0_tgate_orA","",1024,0,4192);
+	
+	//TDC plots
+	dirTDC->cd();
+	for (int i=0;i<16;i++) {
+		name.str("");
+		name << "TDCspect_" << i;
+		TDC_Plot[i] = new TH1I(name.str().c_str(),"",2500,-500,500);
+	}
+	
   // Create all spectra based on quadrants
   dirDEEplots->cd();
   for (int quad = 0; quad < 4; quad++) {
@@ -241,12 +261,16 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   dirhitmaps->cd();
   xyhitmap_allE = new TH2I("xyhitmap_allE","", 100,-10,10,100,-10,10);
   xyhitmap = new TH2I("xyhitmap","", 100,-10,10,100,-10,10);
+  xyhitmap_EdEgate_1stEL = new TH2I("xyhitmap_EdEgate_1stEL","", 100,-10,10,100,-10,10);
+  xyhitmap_EdEgate_2ndEL = new TH2I("xyhitmap_EdEgate_2ndEL","", 100,-10,10,100,-10,10);
+  xyhitmap_tgate_orA = new TH2I("xyhitmap_tgate_orA","", 100,-10,10,100,-10,10);
   protonhitmap = new TH2I("protonhitmap","", 100,-10,10,100,-10,10);
   deuteronhitmap = new TH2I("deuteronhitmap","", 100,-10,10,100,-10,10);
   tritonhitmap = new TH2I("tritonhitmap","", 100,-10,10,100,-10,10);
   alphahitmap = new TH2I("alphahitmap","", 100,-10,10,100,-10,10);
   He6hitmap = new TH2I("He6hitmap","", 100,-10,10,100,-10,10);
   Lihitmap = new TH2I("Lihitmap","", 100,-10,10,100,-10,10);
+  LiVETOhitmap = new TH2I("LiVETOhitmap","", 100,-10,10,100,-10,10);
 
   hitmapof_p = new TH2I("hitmapof_p","", 100,-10,10,100,-10,10);
   hitmapof_6He = new TH2I("hitmapof_6He","", 100,-10,10,100,-10,10);
@@ -319,6 +343,18 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
 
   // Li6
   dir6Li->cd();
+  // -> p + n + a
+  Erel_6Li_npa = new TH1I("Erel_6Li_npa","",500,0,5);
+  Ex_6Li_npa_trans = new TH1I("Ex_6Li_npa_trans","",500,0,5);
+  Ex_6Li_npa_long = new TH1I("Ex_6Li_npa_long","",500,0,5);
+  Ex_6Li_npa = new TH1I("Ex_6Li_npa","",500,0,5);
+  cos_thetaH_npa = new TH1I("cos_thetaH_npa","",100,-1.1,1.1);
+  ThetaCM_6Li_npa = new TH1I("ThetaCM_6Li_npa","",200,0,25);
+  VCM_6Li_npa = new TH1I("VCM_6Li_npa","",100,1.5,4.5);
+
+  cos_npa_thetaH = new TH1I("cos_npa_thetaH","",100,-1.1,1.1);
+  Erel_npa_cosThetaH = new TH2I("Erel_npa_cosThetaH","",200,0,3,25,-1,1);
+  
   Erel_6Li_da = new TH1I("Erel_6Li_da","",500,0,5);
   Ex_6Li_da_trans = new TH1I("Ex_6Li_da_trans","",500,0,5);
   Ex_6Li_da_long = new TH1I("Ex_6Li_da_long","",500,0,5);
@@ -447,7 +483,7 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   Erel_7Li_ta_fake = new TH1I("Erel_7Li_ta_fake","",400,0,8);
   Ex_7Li_ta_fake = new TH1I("Ex_7Li_ta_fake","",400,2,10);
 
-  Ex_8Be_7LiGate = new TH1I("Ex_8Be_pta","",250,20,25);
+  Ex_8Be_7LiGate = new TH1I("Ex_8Be_pta_7LiGate","",250,20,25);
 
   // B9
   dir9B->cd();

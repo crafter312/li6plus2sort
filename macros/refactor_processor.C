@@ -52,8 +52,9 @@ vector<string> generate_column_names_psd(const string& parname) {
 void refactor_processor() {
 
 	// Get number of entries from input file
-	string iprefix = "run-509-510";
+	string iprefix = "run-512";
 	string path = "../../SpecTcl_6Liplus2IAS/";
+	string outpath = "../../data/";
 	size_t numentries;
 	{
 		TFile *file = TFile::Open((path + iprefix + ".root").c_str());
@@ -89,7 +90,7 @@ void refactor_processor() {
 	ROOT::TTreeProcessorMT tp(ifname.c_str(), "t");
 	
 	// Create the TBufferMerger: this class orchestrates the parallel writing
-	ROOT::TBufferMerger merger((path + iprefix + "-par.root").c_str());
+	ROOT::TBufferMerger merger((outpath + iprefix + "-par.root").c_str());
 
 	// Generate column names for reading from input tree
 	vector<string> e_columns   = generate_column_names_hinp("e");
@@ -153,6 +154,7 @@ void refactor_processor() {
 		tpar->Branch("chan", &hits_chan);
 		tpar->Branch("e", &hits_e);
 		tpar->Branch("eLo", &hits_eLo);
+		tpar->Branch("t", &hits_t);
 		tpar->Branch("psd_chip", &psd_hits_chip);
 		tpar->Branch("psd_chan", &psd_hits_chan);
 		tpar->Branch("psd_a", &psd_hits_a);
@@ -218,7 +220,7 @@ void refactor_processor() {
 		}
 
 		// Add the remainder to the progress bar
-    globalProcessed.fetch_add(localCounter);
+		globalProcessed.fetch_add(localCounter);
 
 		f->Write();
 	};

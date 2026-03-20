@@ -38,6 +38,8 @@ SortConfig::SortConfig(string configFilePath) {
 			otreeName = line.substr(line.find('=') + 2);
 		else if (line.find("lossDir") != string::npos)
 			lossDir = line.substr(line.find('=') + 2);
+		else if (line.find("PIDDir") != string::npos)
+			PIDDir = line.substr(line.find('=') + 2);
 		else if (line.find("targetSuffix") != string::npos)
 			targetSuffix = line.substr(line.find('=') + 2);
 		else if (line.find("calDir") != string::npos)
@@ -54,6 +56,14 @@ SortConfig::SortConfig(string configFilePath) {
 			backTimecalFile = line.substr(line.find('=') + 2);
 		else if (line.find("deltaTimecalFile") != string::npos)
 			deltaTimecalFile = line.substr(line.find('=') + 2);
+		else if (line.find("targdist") != string::npos) {
+			std::string temps = line.substr(line.find('=') + 2);
+			targdist = std::stof(temps);
+			}
+		else if (line.find("targthick") != string::npos) {
+			std::string temps = line.substr(line.find('=') + 2);
+			targthick = std::stof(temps); 
+		}
 	}
 	configfile.close();
 }

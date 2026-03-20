@@ -17,6 +17,7 @@ private:
 	std::string ofileName;
 	std::string otreeName;
 	std::string lossDir;
+	std::string PIDDir;
 	std::string targetSuffix;
 	std::string calDir;
 	std::string frontEcalFile;
@@ -25,6 +26,8 @@ private:
 	std::string frontTimecalFile;
 	std::string backTimecalFile;
 	std::string deltaTimecalFile;
+	float targdist;
+	float targthick;
 
 public:
 	SortConfig(std::string configFilePath);
@@ -36,6 +39,7 @@ public:
 	std::string GetOfileName() { return ofileName; }
 	std::string GetOtreeName() { return otreeName; }
 	std::string GetLossDir() { return lossDir; }
+	std::string GetPIDDir() { return PIDDir; }
 	std::string GetTargetSuffix() { return targetSuffix; }
 	std::string GetCalDir() { return calDir; }
 	std::string GetFrontEcalFile() { return frontEcalFile; }
@@ -44,7 +48,8 @@ public:
 	std::string GetFrontTimecalFile() { return frontTimecalFile; }
 	std::string GetBackTimecalFile() { return backTimecalFile; }
 	std::string GetDeltaTimecalFile() { return deltaTimecalFile; }
-
+	float GetTargDist() { return targdist; }
+	float GetTargThick() { return targthick; }
 };
 
 #endif

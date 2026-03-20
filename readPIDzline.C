@@ -2,7 +2,7 @@ void readPIDzline(int quad)
 {
   int Nlines;
   ostringstream outstring;
-  outstring << "zline/pid_quad" << quad << ".zline";
+  outstring << "../li6plus2sort/zline/pid_quad" << quad << ".zline";
   string sname = outstring.str();
   cout << sname << endl;
   ifstream zlines(sname.c_str());

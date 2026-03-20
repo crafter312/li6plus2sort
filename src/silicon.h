@@ -31,7 +31,7 @@ class silicon
   silicon(float, SortConfig&);
   ~silicon();
   void reset();
-  void init(int);
+  void init(int, SortConfig&);
   void Reduce();
   int simpleFront();
   int multiHit();
@@ -57,8 +57,8 @@ class silicon
   elist Back;
   elist Delta;
 
-  solution Solution[10];
-  int Nsolution;
+  solution Solution[20];
+  int Nsolution = 0;
 
   pid * Pid;
 

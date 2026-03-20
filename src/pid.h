@@ -12,11 +12,12 @@
 
 #include "constants.h"
 #include "ZApar.h"
+#include "SortConfig.h"
 
 class pid {
 
 public:
-	pid(std::string file); 
+	pid(std::string file,SortConfig&); 
 	~pid();
 
 	bool getPID(float x, float y);
