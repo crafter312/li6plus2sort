@@ -76,12 +76,13 @@ vector<vector<float>> getcalvals(string frontfile, string backfile, string deltf
 
 void calsumplots() {
 
+
   // Get number of entries from input file
   //Delta file : run-511-par
   //E file : run-509-510-par
 
-	string iprefix = "run-509-510-par";
-	string path = "../../SpecTcl_6Liplus2IAS/";
+	string iprefix = "run-511-par";
+	string path = "../../data/";
 	size_t numentries;
 
 	TFile *file = TFile::Open((path + iprefix + ".root").c_str());
@@ -101,10 +102,45 @@ void calsumplots() {
 
   cout << "Num entries in tree: " << numentries << endl;
 
+	//Root output file
+  TFile * outfile = new TFile("SiUnpacker.root", "RECREATE");
+  outfile->cd();
+
   //Delta E spectrum
   TH2I * DeltaSumCal = new TH2I("DeltaESum_Cal","",128,0,128,2000,0,80);
   TH2I * FrontSumCal = new TH2I("FrontESum_Cal","",128,0,128,2000,0,80);
   TH2I * BackSumCal = new TH2I("BackESum_Cal","",128,0,128,2000,0,80);
+
+	//E vs time for b1 chan 0
+	TH2I * EvsT_B1C0 = new TH2I("EvsT_B1C0","",100,0,1000,8192,0,16384);
+
+	TDirectoryFile * EPlots = new TDirectoryFile("EPlots","EPlots");
+	TDirectory * EBoards[BOARD_COUNT];
+	TH1I * eplot[BOARD_COUNT][CHAN_COUNT];
+
+	TDirectoryFile * TimePlots = new TDirectoryFile("TimePlots","TimePlots");
+	TDirectory * TimeBoards[BOARD_COUNT];
+	//1D time
+	TimePlots->cd();
+	TH1I * timeplot[BOARD_COUNT][CHAN_COUNT];
+	for (int i=0;i<BOARD_COUNT;i++) {
+	
+		string direcname = "Board" + to_string(i+1);
+		TimeBoards[i] = TimePlots->mkdir(direcname.c_str(),direcname.c_str());
+		TimeBoards[i]->cd();
+		for (int j=0;j<CHAN_COUNT;j++) {
+			string tplotname = "Time_" + to_string(i+1) + "_" + to_string(j);
+			timeplot[i][j] = new TH1I(tplotname.c_str(),"",8192,0,16384);
+		}
+		
+		EBoards[i] = EPlots->mkdir(direcname.c_str(),direcname.c_str());
+		EBoards[i]->cd();
+		for (int j=0;j<CHAN_COUNT;j++) {
+			string plotname = "E_" + to_string(i+1) + "_" + to_string(j);
+			eplot[i][j] = new TH1I(plotname.c_str(),"",4096,0,8192);
+		}
+		
+	}
 
   //Calibration filepath
   string calpath = "../Cal/";
@@ -119,11 +155,13 @@ void calsumplots() {
   TTreeReaderValue<vector<size_t>> board(reader, "board");
   TTreeReaderValue<vector<size_t>> channel(reader, "chan");
   TTreeReaderValue<vector<size_t>> energy(reader, "e");
+  TTreeReaderValue<vector<size_t>> time(reader, "t");
 
   while (reader.Next()) {
     vector<size_t> evec = *energy;
     vector<size_t> boardvec = *board;
     vector<size_t> chanvec = *channel;
+    vector<size_t> timevec = *time;
 
     vector<float> Ecal;
 
@@ -144,14 +182,20 @@ void calsumplots() {
         BackSumCal->Fill(bID,Ecal[i]);
       }
       else {
-        cout << "invalid board number, skip event" << endl;
+        cout << "invalid board nu  outfile->Close();mber, skip event" << endl;
         continue;
       }
+      
+      // Look at T vs E for channel 0
+      if (boardvec[i] == 9 && chanvec[i] == 4) {
+      	EvsT_B1C0->Fill(evec[i],timevec[i]);
+      }
+      timeplot[boardvec[i]-1][chanvec[i]]->Fill(timevec[i]);
+      eplot[boardvec[i]-1][chanvec[i]]->Fill(evec[i]);
     }
     
   }
 
-  if (DeltaSumCal->GetEntries() > 0) DeltaSumCal->DrawClone("colz");
-  if (FrontSumCal->GetEntries() > 0) FrontSumCal->DrawClone("colz");
-  if (BackSumCal->GetEntries() > 0) BackSumCal->DrawClone("colz");
+	outfile->Write();
+  outfile->Close();
 }

@@ -18,21 +18,21 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config/*, TexNeut& tex*/) : input(in), Histo(hist)/*, texneut(tex)*/ {
-  Targetdist = 23.95;//23.95;//24.1;//23.5; //cm
-  TargetThickness = 2.65;//3.2;//2.65; //mg/cm^2 for CD2 tar1
+Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config/*, TexNeut& tex*/) : input(in.GetGobbi()), Histo(hist), input_qdc(in.GetQDC()),input_tdc(in.GetTDC())/*, texneut(tex)*/ {
+  Targetdist = config.GetTargDist();//23.95;//23.95;//24.1;//23.5; //cm //TODO is this correct? Shoud target dist be taken from input?
+  TargetThickness = config.GetTargThick();;//3.2;//2.65; //mg/cm^2 for CD2 tar1 //TODO same as targ dist but for thickness
   //TargetThickness = 3.8; //mg/cm^2
 
   for (int id = 0; id < 4; id++) {
     Silicon[id] = new silicon(TargetThickness, config);
-    Silicon[id]->init(id); //tells Silicon what position it is in
+    Silicon[id]->init(id,config); //tells Silicon what position it is in
     Silicon[id]->SetTargetDistance(Targetdist);
   }
 
   string calDir = config.GetCalDir();
-  FrontEcal = new calibrate(4, Histo.channum, calDir + config.GetFrontEcalFile(), 1, true);
-  BackEcal = new calibrate(4, Histo.channum, calDir + config.GetBackEcalFile(), 1, true);
-  DeltaEcal = new calibrate(4, Histo.channum, calDir + config.GetDeltaEcalFile(), 1, true);
+  FrontEcal = new calibrate(4, Histo.channum, calDir + config.GetFrontEcalFile(), 1, false);
+  BackEcal = new calibrate(4, Histo.channum, calDir + config.GetBackEcalFile(), 1, false);
+  DeltaEcal = new calibrate(4, Histo.channum, calDir + config.GetDeltaEcalFile(), 1, false);
   FrontTimecal = new calibrate(4, Histo.channum, calDir + config.GetFrontTimecalFile(),1, false);
   BackTimecal = new calibrate(4, Histo.channum, calDir + config.GetBackTimecalFile(),1, false);  
   DeltaTimecal = new calibrate(4, Histo.channum, calDir + config.GetDeltaTimecalFile(),1, false);
@@ -53,10 +53,43 @@ Gobbi::~Gobbi() {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 bool Gobbi::analyze() {
+	
+
+	//Look at diamond detector
+	for (int i=0;i<input_qdc.chan.size();i++) {
+		if (input_qdc.chan[i] == 0) {
+			Histo.DiamondQDC0->Fill(input_qdc.qh[i]);
+			
+			//Gated on or A tdc
+			if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+				Histo.DiamondQDC0_tgate_orA->Fill(input_qdc.qh[i]);
+			}
+			
+		}
+		if (input_qdc.chan[i] == 1) Histo.DiamondQDC1->Fill(input_qdc.qh[i]);
+	}
+	
+
+	
+	//Fill TDC plots
+	for (int i=0;i<16;i++) {
+		//Loop over each channel
+		if (input_tdc.Nhits[i] == 0) continue;
+		//cout << input_tdc.Nhits[i] << endl;
+		for (int j=0;j<input_tdc.Nhits[i];j++) {
+			Histo.TDC_Plot[i]->Fill(input_tdc.t[i][j]);
+		}
+	}
+	
+	//Make time gates using TDC
+	//Add them as you go
+	float TDC_upper[16] = {0,-80};
+	float TDC_lower[16] = {0,50};
 
   // Reset the Silicon class
+  //cout << "here pre Si reset" << endl;
   for (int i = 0; i < 4; i++) Silicon[i]->reset();
-
+	//cout << "here post Si reset, have " << input.GetNhits() << " hits" << endl;
 	size_t nhits = input.GetNhits();
   for (int i = 0; i < nhits; i++) {
     //check if there is an array for determined chip# and chan#
@@ -68,10 +101,10 @@ bool Gobbi::analyze() {
       cout << " unpacked but not saved" << endl;
       return true;
     }
-
+	//cout << "here pre Si storing " << i << endl;
     float Energy = 0;
     float time = 0; //can be calibrated or shifted later
-
+		
     //Use calibration to get Energy and fill elist class in silicon
     if (input.GetBoard(i) == 1 || input.GetBoard(i) == 3 || input.GetBoard(i) == 5 || input.GetBoard(i) == 7)
     {
@@ -149,7 +182,7 @@ bool Gobbi::analyze() {
   }
   //data is unpacked and stored into Silicon class at this point
 
-
+	//cout << "here post Si storing" << endl;
   //This is the spot if we run Silicon->Neighbours()
   for (int id=0;id<4;id++) 
   {
@@ -207,6 +240,12 @@ bool Gobbi::analyze() {
     }
   }
 
+	//Make crude time gates for the different telescopes (Same for each quad's OR A right now)
+	//tGates_orA_upper[4] = {13723,};
+	//tGates_orA_lower[4] = {};
+	
+	
+
   //plot E vs dE bananas and hitmap of paired dE,E events
   for (int id=0;id<4;id++) 
   {
@@ -222,11 +261,6 @@ bool Gobbi::analyze() {
       //cout << "x " << Silicon[id]->Solution[isol].Xpos << "  y " << Silicon[id]->Solution[isol].Ypos << endl;
       //cout << "E " << Silicon[id]->Solution[isol].energy << "  dE " << Silicon[id]->Solution[isol].denergy << endl;
 
-
-      //these events are all blocked by the beam donut, radius 1.9cm
-      if (1.5 > sqrt( pow(Silicon[id]->Solution[isol].Xpos,2)+ pow(Silicon[id]->Solution[isol].Ypos,2)) )
-        continue;
-
       //fill in dE-E plots to select particle type
       float Ener = Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy*(1-cos(Silicon[id]->Solution[isol].theta));
 
@@ -241,15 +275,16 @@ bool Gobbi::analyze() {
 
       //used to get high energy calibration points
       //need to convert interlaced strip numbers to calibration strip numbers
+      // TODO already converted to strip #, make sure this isn't changed again
       int chan = Silicon[id]->Solution[isol].ifront;
-      if (chan%2 ==0) //evens
+      /*if (chan%2 ==0) //evens
       {
         chan = chan/2 + 16;
       }
       else //odds
       {
         chan = (chan -1)/2;
-      }
+      }*/
 
       //make a correction to the energy based on angle
       float angle_Ecorr =  1.0277e-5*pow(th,3) + 1.6125e-3*pow(th,2) + 8.3097e-4*th - 1.0227e-3;
@@ -266,14 +301,14 @@ bool Gobbi::analyze() {
       Histo.AngleCorrFrontE_cal->Fill(id*Histo.channum + Silicon[id]->Solution[isol].ifront, Ecorr);
 
       int chandE = Silicon[id]->Solution[isol].ide;
-      if (chan%2 ==0) //evens
+      /*if (chan%2 ==0) //evens
       {
         chandE = chandE/2 + 16;
       }
       else //odds
       {
         chandE = (chandE -1)/2;
-      }
+      }*/
 
       //make a correction to the energy based on angle
       float angle_dEcorr =  -1.0971e-5*pow(th,3) - 1.1446e-3*pow(th,2) - 8.9371e-4*th + 1.0879e-3;
@@ -309,6 +344,20 @@ bool Gobbi::analyze() {
     {
       float xpos = Silicon[id]->Solution[isol].Xpos;
       float ypos = Silicon[id]->Solution[isol].Ypos;
+      
+      // Gated on or A time
+      if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+      	Histo.xyhitmap_tgate_orA->Fill(xpos,ypos);
+      }
+      
+      //Gated on E-DE blobs
+      if (Silicon[id]->Solution[isol].energy > 46 && Silicon[id]->Solution[isol].energy < 53 && Silicon[id]->Solution[isol].denergy > 3.6 && Silicon[id]->Solution[isol].denergy < 6.7) {
+      	Histo.xyhitmap_EdEgate_1stEL->Fill(xpos,ypos);
+      }
+      if (Silicon[id]->Solution[isol].energy > 37 && Silicon[id]->Solution[isol].energy < 43 && Silicon[id]->Solution[isol].denergy > 5.5 && Silicon[id]->Solution[isol].denergy < 8.5) {
+      	Histo.xyhitmap_EdEgate_2ndEL->Fill(xpos,ypos);
+      }
+      
       //protons
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 1)
       {
@@ -343,6 +392,11 @@ bool Gobbi::analyze() {
       {
         Histo.Lihitmap->Fill(xpos, ypos);
         Histo.dTime_Li->Fill(Silicon[id]->Solution[isol].timediff);
+      }
+      //Li veto
+      if (Silicon[id]->Solution[isol].iZ != 3 && Silicon[id]->Solution[isol].iA != 7)
+      {
+        Histo.LiVETOhitmap->Fill(xpos, ypos);
       }
     }
   }
@@ -403,8 +457,8 @@ bool Gobbi::analyze() {
     corr_8Be();
     corr_9B();
     
-
-    //lots of Li6 but they don't come in with anything. Could be Li6 + n    
+		//TODO Keep this or remove it? We should see the neutrons but maybe this is useful for just 6Li + p
+    //lots of Li6 but they don't come in with anything. Could be Li6 + n    Keep correlation table?
     if (goodMult == 2)
     {
       //cout << "goodMult=2" << endl;
@@ -562,10 +616,6 @@ void Gobbi::corr_4He()
     Histo.Erel_dd_costhetaH->Fill(Erel_4He,Correl.cos_thetaH);
 
   }
-
-
-
-
 }
 
 void Gobbi::corr_5He()
@@ -616,7 +666,6 @@ void Gobbi::corr_6He()
 
 void Gobbi::corr_5Li()
 {
-
   // p+He4
   if(Correl.proton.mult == 1 && Correl.alpha.mult == 1)
   {
@@ -660,7 +709,38 @@ void Gobbi::corr_5Li()
 
 
 void Gobbi::corr_6Li()
-{
+{	
+	// 6Li -> alpha + p + n
+	if(Correl.proton.mult == 1 && Correl.neutron.mult == 1 && Correl.alpha.mult == 1) {
+		
+		float const Q6Li = mass_6Li - (mass_p + mass_n + mass_alpha);
+		Correl.zeroMask();
+		Correl.proton.mask[0] = 1;
+		Correl.neutron.mask[0] = 1;
+		Correl.alpha.mask[0] = 1;
+		Correl.makeArray(1);
+		
+		float Erel_6Li = Correl.findErel();
+		float thetaCM = Correl.thetaCM;
+		float Ex = Erel_6Li - Q6Li;
+		
+		Histo.Erel_6Li_npa->Fill(Erel_6Li);
+    Histo.Ex_6Li_npa->Fill(Ex);
+
+    Histo.cos_thetaH_npa->Fill(Correl.cos_thetaH);
+    Histo.ThetaCM_6Li_npa->Fill(thetaCM*180./acos(-1));
+    Histo.VCM_6Li_npa->Fill(Correl.velocityCM);
+    
+    if(fabs(Correl.cos_thetaH) < .3)
+      Histo.Ex_6Li_npa_trans->Fill(Ex);
+    if(fabs(Correl.cos_thetaH) > .7)
+      Histo.Ex_6Li_npa_long->Fill(Ex);
+
+
+    Histo.cos_da_thetaH->Fill(Correl.cos_thetaH);
+    Histo.Erel_da_cosThetaH->Fill(Erel_6Li,Correl.cos_thetaH);
+	}
+
   // D+alpha
   if(Correl.H2.mult == 1 && Correl.alpha.mult == 1)
   {
@@ -806,57 +886,6 @@ void Gobbi::corr_7Li()
       Histo.Ex_7Li_p6He_transverse2->Fill(Ex);
     }
     else  Histo.Erel_7Li_p6He_pFor->Fill(Erel_7Li);
-
-    //frag[0] is always triton, frag[1] is always alpha
-    // -2000 < dT_proton < 0 && -500 < dT_He6 < 200
-    if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -1300) 
-      if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-        Histo.Ex_7Li_p6He_timegate->Fill(Ex);
-
-
-    Histo.cos_thetaH->Fill(Correl.cos_thetaH);
-    Histo.missingmass->Fill(missingmass-Mass_n);
-    Histo.Qvalue->Fill(getqvalue);
-    Histo.Qvalue2->Fill(getelqvalue);
-    Histo.Erel_missingmass->Fill(Erel_7Li,missingmass-Mass_n);
-    if (missingmass-Mass_n > -2 && missingmass-Mass_n < 2)
-    {
-      if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -2000) 
-        if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-          Histo.Ex_7Li_p6He_clean->Fill(Ex);
-    } 
-
-    Histo.Erel_7Li_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
-    if (Erel_7Li < 1.)
-    {
-      Histo.cos_thetaH_lowErel->Fill(Correl.cos_thetaH);
-      //Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-      //Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
-    }
-    if (Ex > 11.6 && Ex < 11.8)
-    {
-      Histo.hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
-      Histo.hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
-      Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-      Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
-    }
-
-    Histo.Ex_7Li_p6He_ExvsEp->Fill(Ex, Correl.frag[0]->energy);
-
-
-    Histo.Ex_7Li_p6He->Fill(Ex);
-    //cout << Ex << endl;
-    Histo.ThetaCM_7Li_p6He->Fill(thetaCM*180./acos(-1));
-    Histo.VCM_7Li_p6He->Fill(Correl.velocityCM);
-    if(Erel_7Li < 2.)
-    {
-      Histo.VCM_7Li_p6He_lowErel->Fill(Correl.velocityCM);
-    }
-
-    Histo.dTime_7Li_proton->Fill(Correl.frag[0]->timediff);
-    Histo.dTime_7Li_He6->Fill(Correl.frag[1]->timediff);
-    
-
   }
 
   // H3 + He4
@@ -890,31 +919,6 @@ void Gobbi::corr_7Li()
     Histo.Erel_ta_cosThetaH->Fill(Erel_7Li,Correl.cos_thetaH);
     Histo.Ex_tar->Fill(Ex_tar);
     Histo.Erel_vs_Extar->Fill(Erel_7Li,Ex_tar);
-
-
-
-    //frag[0] is always proton, frag[1] is always He6
-    // -2000 < dT_proton < 0 && -500 < dT_He6 < 200
-    if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -2000) 
-      if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -500)
-        Histo.Ex_7Li_ta_timegate->Fill(Ex);
-
-    //if (Ex > 3.5 && Ex < 4.3)
-    //{
-    //  Histo.hitmapcheck1->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
-    //  Histo.hitmapcheck2->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
-    //  //Histo.DEE_shoulderevents->Fill(Correl.frag[0]->energy,Correl.frag[0]->denergy);
-    //  //Histo.DEE_shoulderevents->Fill(Correl.frag[1]->energy,Correl.frag[1]->denergy);
-    //}
-    Histo.dTime_7Li_triton->Fill(Correl.frag[0]->timediff);
-    Histo.dTime_7Li_alpha->Fill(Correl.frag[1]->timediff);
-
-    if (Correl.frag[0]->itele != Correl.frag[1]->itele)
-    {
-      Histo.seperate_quad_Ex_7Li_ta->Fill(Ex);
-    }
-
-
   }
 }
 
@@ -1018,23 +1022,6 @@ void Gobbi::corr_8Be()
     Histo.VCM_8Be_p7Li->Fill(Correl.velocityCM);
     Histo.cos_p7Li_thetaH->Fill(Correl.cos_thetaH);
     Histo.Erel_p7Li_cosThetaH->Fill(Erel_8Be,Correl.cos_thetaH);
-
-
-    //look for proton and Li7 cuttoffs
-    Histo.ProtonEnergies_p7Li->Fill(Correl.frag[0]->Ekin);
-    Histo.LithiumEnergies_p7Li->Fill(Correl.frag[1]->denergy);
-
-    //cout << Correl.frag[0]->Ekin << " " << Correl.frag[1]->Ekin << endl;
-    
-    Histo.dTime_8Be_proton->Fill(Correl.frag[0]->timediff);
-    Histo.dTime_8Be_Li7->Fill(Correl.frag[1]->timediff);
-
-
-    if (Correl.frag[0]->timediff < 0 && Correl.frag[0]->timediff > -1800)
-      if (Correl.frag[1]->timediff < 200 && Correl.frag[1]->timediff > -550)
-        Histo.Ex_8Be_p7Li_timegate->Fill(Ex);
-
-
   }
 
   //p+t+a
@@ -1078,25 +1065,6 @@ void Gobbi::corr_8Be()
 
     Histo.Erel_7Li_ta_fake->Fill(Erel_7Li);
     Histo.Ex_7Li_ta_fake->Fill(Ex);
-
-
-    if (Ex < 5 && Ex > 4.4)
-    {
-
-      float const Q8Be = mass_8Be - (mass_p + mass_t + mass_alpha);
-      Correl.zeroMask();
-      Correl.proton.mask[0]=1;
-      Correl.H3.mask[0]=1;
-      Correl.alpha.mask[0]=1;
-      Correl.makeArray(1);
-
-      float Erel_8Be = Correl.findErel();
-      float thetaCM = Correl.thetaCM;
-      float Exreal = Erel_8Be - Q8Be;
-
-      Histo.Ex_8Be_7LiGate->Fill(Exreal);
-    }
-
   }
 }
 
@@ -1131,13 +1099,6 @@ void Gobbi::corr_9B()
     Correl.alpha.mask[1]=true;
     Correl.proton.mask[0] = false;
     Correl.makeArray(true);
-
-
-    float Erel_8Be = Correl.findErel();
-
-    float Ex_8Be = Erel_8Be + 2.*mass_alpha - mass_8Be;
-    Histo.Ex_9B_aa->Fill(Ex_8Be);
-    if (fabs(Ex_8Be) < .1) Histo.Ex_9B_p8Be->Fill(Ex);
   }
 }
 
@@ -1146,9 +1107,6 @@ void Gobbi::corr_6Be()
   // He4+He4+p
   if(Correl.alpha.mult == 1 && Correl.proton.mult == 2)
   {
-
- 
-
     Correl.zeroMask();
     Correl.alpha.mask[0]=1;
     Correl.proton.mask[0]=1;
@@ -1157,12 +1115,10 @@ void Gobbi::corr_6Be()
 
     float Erel_6Be = Correl.findErel();
 
-
     float thetaCM = Correl.thetaCM;
 
     Histo.Erel_6Be_2pa->Fill(Erel_6Be);
     Histo.ThetaCM_6Be_2pa->Fill(thetaCM*180./acos(-1));
     Histo.VCM_6Be_2pa->Fill(Correl.velocityCM);
-
   }
 }

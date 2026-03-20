@@ -14,10 +14,10 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-pid::pid(string file) : Z(-1), A(-1) {
+pid::pid(string file, SortConfig& config) : Z(-1), A(-1) {
 
 	// Open zline file
-	string name = "zline/" + file + ".zline";
+	string name = config.GetPIDDir() + file + ".zline";
 	cout << "opening zline file: " << name << endl;
 	ifstream ifile(name.c_str());
 	if (!ifile.is_open()) {

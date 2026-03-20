@@ -54,7 +54,6 @@ public:
 	double** slopes;
 	double** intercepts;
 
-	Input& input;
 	histo& Histo;
 	//TexNeut& texneut;
 	calibrate* FrontEcal;
@@ -77,6 +76,9 @@ public:
 	solution* oldfrag;
 
 private:
+	const Input::GobbiInput& input;
+	const Input::QDCInput& input_qdc;
+	const Input::TDCInput& input_tdc;
 
   // This function is meant to take the neutron kinematic information
   // from TexNeut, put it in a solution, and transfer said solution

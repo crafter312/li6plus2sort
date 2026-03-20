@@ -38,16 +38,16 @@ int main() {
 	t = clock();
 
 	// Enable implicit multi-threading
-	int nthreads = 4;
+	int nthreads = 6;
 	ROOT::EnableImplicitMT(nthreads);
 
 	// Load config file for sort code
-	SortConfig sortConfig("../sort.config");
+	SortConfig sortConfig("../config/sort.config");
 
 	// TNLIB (Alex's TexNeut library) setup
-  config configFile(sortConfig.GetTnlibConfig());
+	config configFile(sortConfig.GetTnlibConfig());
 	detector texneut;
-  texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
+	texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	string ofname = configFile.GetOutputDir() + sortConfig.GetOfileName();
@@ -57,22 +57,17 @@ int main() {
 	// The function must receive only one parameter, a TTreeReader,
 	// and it must be thread safe. To enforce the latter requirement,
 	// TBufferMerger::GetFile will be used for the output file.
+	int rcount = 0;
 	auto f = [&](TTreeReader &reader) {
 		Input input(reader);
 
-		//TexNeut tex;
+		//detector texneut; // contains mapping information for TexNeut
 
 		// Output using thread safe file
 		auto f = merger.GetFile();
 		f->cd();
 
-		int whatever;
-
-		TH1I h("h", "h", 100, 0, 100);
-
 		const char* otname = sortConfig.GetOtreeName().c_str();
-		TTree test(otname, otname);
-		test.Branch("whatever", &whatever);
 
 		// TODO: modify histo and Gobbi classes to work in this new multi-threaded framework with pre-unpacked ROOT file
 		// Build three classes that are used to organize and unpack each physicsevent
@@ -84,23 +79,23 @@ int main() {
 		// Event loop
 		while (reader.Next()) {
 			input.ReadAndRefactor();
+			//cout << "here post read and refactor" << endl;
 			//tex.CustomFillNecessary(input.getNeutMult(), input.getNeutE(), ...); // input.getNeutE(), ... -> type: std::vector<size_t>&
 			//bool good = tex.analyze();
 			//if (!good) continue;
 			//gobbi.LoadTexNeutSolution();
 			gobbi.analyze();
+			//cout << "here post Gobbi analyze" << endl;
+			rcount++;
+			//if (rcount == 100) break;
 
-			h.Fill(whatever);
-			whatever = input.GetNhits();
-			test.Fill();
 		}
+		rcount = 0;
 		cout << "Thread-wise event loop finished!" << endl;
 
-		f->cd();
-		f->WriteTObject(&h, "h", "WriteDelete");
 	};
 
-  string runNumbersFile = sortConfig.GetRunNumbersFile();
+	string runNumbersFile = sortConfig.GetRunNumbersFile();
 	ifstream runFile(runNumbersFile);
 	if (runFile.fail()) throw invalid_argument(string(BOLDRED) + string("Run numbers file ") + runNumbersFile + std::string(" does not exist or failed to open") + std::string(RESET));
 
@@ -144,10 +139,10 @@ int main() {
 		tp.Process(f);
 	} // loop over run numbers from number.beam
 
-  t = clock() - t;
-  cout << "run time: " << (float)t/CLOCKS_PER_SEC/60 << " min" << endl;
+	t = clock() - t;
+	cout << "run time: " << (float)t/CLOCKS_PER_SEC/60 << " min" << endl;
 
-  return 0;
+	return 0;
 }
 
 

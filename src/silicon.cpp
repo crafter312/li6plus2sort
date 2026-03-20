@@ -10,11 +10,7 @@ silicon::silicon(float thick0, SortConfig& config)
 {
   TargetThickness = thick0;
   SiWidth = 6.45;
-  //switch which loss file is used depending on the target.
-  losses = new CLosses(6,"_CD2.loss");
-  //losses = new CLosses(6,"_CH2.loss");
-  //losses = new CLosses(6,"_C.loss");
-  //losses = new CLosses(6,"_Au.loss");
+  losses = new CLosses(3, config);
   Ran = new TRandom();
 }
 
@@ -28,7 +24,7 @@ silicon::~silicon()
 }
 
 //inialization
-void silicon::init(int id0)
+void silicon::init(int id0, SortConfig& config)
 {
   id = id0;
   //-ND checked 5/12/2022 these distances are correct compared to the simulation
@@ -41,7 +37,7 @@ void silicon::init(int id0)
   ostringstream outstring;  
   outstring << "pid_quad" << id+1;
 
-  Pid = new pid(outstring.str());
+  Pid = new pid(outstring.str(),config);
 
 }
 
@@ -64,9 +60,9 @@ void silicon::reset()
   Front.reset();
   Back.reset();
   Delta.reset();
-
+	if (Nsolution > 100) cout << "here post F,B,D reset, need to reset " << Nsolution << " solutions" << endl;
   for (int i=0; i<Nsolution; i++){ Solution[i].reset();}
-
+	//cout << "here post solution reset" << endl;
   Nsolution = 0;
 }
 

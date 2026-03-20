@@ -46,6 +46,10 @@ public:
 	TDirectory* dir1dFrontTime_R;
 	TDirectory* dir1dBackTime_R;
 	TDirectory* dir1dDeltaTime_R;
+	
+	TDirectoryFile* dirDiamond;
+	
+	TDirectoryFile* dirTDC;
 
 	TDirectoryFile* dirDEEplots; // directory for deltaE-E plots used in particle identificaiton
 	TDirectoryFile* dirhitmaps;  // directory for all particle type hitmaps
@@ -100,6 +104,15 @@ public:
 	TH1I* AngleCorr_noCorr[4][channum];
 	TH1I* AngleCorrE_R[4][channum];
 
+	//Diamond detector plots
+	TH1I* DiamondQDC0;
+	TH1I* DiamondQDC1;
+	
+	TH1I* DiamondQDC0_tgate_orA;
+	
+	//TDC plots
+	TH1I * TDC_Plot[16];
+
 	// Delta E silicon plots
 	TH1I* DeltaE_R[4][channum];
 	TH1I* DeltaElow_R[4][channum];
@@ -118,12 +131,16 @@ public:
 
 	TH2I* xyhitmap_allE;
 	TH2I* xyhitmap;
+	TH2I* xyhitmap_EdEgate_1stEL;
+	TH2I* xyhitmap_EdEgate_2ndEL;
+	TH2I* xyhitmap_tgate_orA;
 	TH2I* protonhitmap;
 	TH2I* deuteronhitmap;
 	TH2I* tritonhitmap;
 	TH2I* alphahitmap;
 	TH2I* He6hitmap;
 	TH2I* Lihitmap;
+	TH2I* LiVETOhitmap;
 	TH2I* hitmapof_p;
 	TH2I* hitmapof_6He;
 
@@ -183,6 +200,17 @@ public:
 	TH1I* VCM_5Li_d3He;
 
 	// Li6
+	// -> p + n + alpa
+	TH1I* Erel_6Li_npa;
+	TH1I* Ex_6Li_npa_trans;
+	TH1I* Ex_6Li_npa_long;
+	TH1I* Ex_6Li_npa;
+	TH1I* cos_thetaH_npa;
+	TH1I* ThetaCM_6Li_npa;
+	TH1I* VCM_6Li_npa;
+	TH1I* cos_npa_thetaH;
+	TH2I* Erel_npa_cosThetaH;
+	
 	TH1I* Erel_6Li_da;
 	TH1I* Ex_6Li_da_trans;
 	TH1I* Ex_6Li_da_long;
