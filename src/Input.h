@@ -7,6 +7,10 @@
  * easily usable form. The resulting variables are stored
  * in this class on a per-event basis and can be accessed
  * via getter functions.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu) and Johnathan
+ * Phillips (j.s.phillips@wustl.edu) March 2026 for experiment
+ * at TAMU Cyclotron Institute
  */
 
 #include <TTreeReader.h>
@@ -21,7 +25,7 @@
 #define HINP_CHAN_COUNT 32
 #define PSD_CHIP_COUNT 24
 #define PSD_CHAN_COUNT 8
-#define QDC_CHAN_COUNT 1 // CAEN v965, 16 channels with h and l each (32 total parameters)
+#define QDC_CHAN_COUNT 2 // CAEN v965, 16 channels with h and l each (32 total parameters)
 #define TDC_CHAN_COUNT 16 // CAEN v1190a, 128 channels can be configured to accept up to 16 hits each
 #define TDC_HIT_COUNT 3 // CAEN v1190a, 128 channels can be configured to accept up to 16 hits each
 
@@ -143,7 +147,7 @@ public:
 		
 		// Vector for TDC hit values
 		size_t Nhits[TDC_CHAN_COUNT]; // one for each channel
-		std::vector<double> t[TDC_CHAN_COUNT]; // outermost array stores channels, innermost vector stores hits
+		std::vector<int> t[TDC_CHAN_COUNT]; // outermost array stores channels, innermost vector stores hits
 		
 		void clear() {
 			for (int i = 0;i < TDC_CHAN_COUNT; i++) {
@@ -154,7 +158,18 @@ public:
 		
 		// Hit getter functions
 		size_t GetNHits(size_t ch) const { return Nhits[ch]; }
-		std::optional<double> GetT(size_t ch, size_t i) { return (i >= t[ch].size()) ? std::nullopt : std::optional<double>(t[ch][i]); }
+		std::optional<int> GetT(size_t ch, size_t i) { return (i >= t[ch].size()) ? std::nullopt : std::optional<int>(t[ch][i]); }
+		
+		// Group channel hits into single vector for interface with TexNeut
+		// Make sure that this properly accesses the TDC channels dedicated to TexNeut (4-16 in my case)
+		// For now, only consider the first hit in each TDC channel
+		void FillTexNeutHitVectors(std::vector<size_t>& chan, std::vector<int> tdct) const {
+			for (int ch = 0; ch < TDC_CHAN_COUNT; ch++) {
+				if (t[ch].size() == 0) continue;
+				chan.push_back(ch);
+				tdct.push_back(t[ch][0]);
+			}
+		}
 	};
 
 	// Getter functions

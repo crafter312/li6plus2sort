@@ -11,6 +11,10 @@
  * for reading values from a SpecTcl-generated ROOT file.
  * This essentially offloads the work of unpacking to SpecTcl,
  * leaving this code to only do the analysis work.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu) and Johnathan
+ * Phillips (j.s.phillips@wustl.edu) March 2026 for experiment
+ * at TAMU Cyclotron Institute
  */
 
 #include "calibrate.h"
@@ -21,7 +25,7 @@
 #include "solution.h"
 #include "SortConfig.h"
 
-//#include "TexNeut.h"
+#include <eventclass.hpp> // TNLIB TexNeut event class
 
 #include <iostream>
 #include <string>
@@ -29,7 +33,7 @@
 class Gobbi {
 
 public:
-	Gobbi(Input&, histo&, SortConfig&);
+	Gobbi(Input& in, histo& hist, SortConfig& config, int run, event& neut);
 	~Gobbi();
 
 	bool analyze();
@@ -55,13 +59,15 @@ public:
 	double** intercepts;
 
 	histo& Histo;
-	//TexNeut& texneut;
+	event& texneut;
 	calibrate* FrontEcal;
 	calibrate* BackEcal;
 	calibrate* DeltaEcal;
 	calibrate* FrontTimecal;
 	calibrate* BackTimecal;
 	calibrate* DeltaTimecal;
+
+	calibrate* DiamondEcal;
 
 	silicon* Silicon[4];
 	solution neutSol;
@@ -74,6 +80,28 @@ public:
 	int passnum = 0;
 	solution* swapfrag;
 	solution* oldfrag;
+	
+	std::vector<float> diamond_Ecal;
+	
+	int runnum;
+	int diamond_calch = -1;
+	
+	//TexNeut TDC gates
+	float TN_TDClow = -147;
+	float TN_TDChigh = -60;
+	
+	//Neutron multiplicity
+	int num_neut;
+	
+	//also record highest multiplicity
+	int num_neut_highest = 0;
+	
+	//Record particle combinations, start with most important
+	int a_p_0n = 0;
+	int a_p_withn = 0; //Just needs to be mult > 0
+	int a_p_1n = 0;
+	int a_p_2n = 0;
+	int a_p_3n = 0;
 
 private:
 	const Input::GobbiInput& input;

@@ -52,7 +52,7 @@ vector<string> generate_column_names_psd(const string& parname) {
 void refactor_processor() {
 
 	// Get number of entries from input file
-	string iprefix = "run-512";
+	string iprefix = "run-562";
 	string path = "../../SpecTcl_6Liplus2IAS/";
 	string outpath = "../../data/";
 	size_t numentries;

@@ -8,6 +8,10 @@
  * SpecTcl output tree. It is also important to make sure
  * that you loop through your TTreeReaderValue objects in
  * the same order in which you create them and their strings.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu) and Johnathan
+ * Phillips (j.s.phillips@wustl.edu) March 2026 for experiment
+ * at TAMU Cyclotron Institute
  */
 
 #include "Input.h"
@@ -152,7 +156,7 @@ void Input::ReadAndRefactor() {
 	
 	// Loop through TDC channels to retrieve time hit information
 	size_t chan, hit;
-	double tdc_t;
+	int tdc_t;
 	for (size_t i = 0; i < TDC_NCOLUMNS; i++) {
 		Double_t testt = *(tdc.tRVs[i]);
 		//cout << "test tdc value " << testt << endl;

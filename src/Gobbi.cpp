@@ -8,6 +8,10 @@
  * for reading values from a SpecTcl-generated ROOT file.
  * This essentially offloads the work of unpacking to SpecTcl,
  * leaving this code to only do the analysis work.
+ * 
+ * Modified by Henry Webb (h.s.webb@wustl.edu) and Johnathan
+ * Phillips (j.s.phillips@wustl.edu) March 2026 for experiment
+ * at TAMU Cyclotron Institute
  */
 
 #include "Gobbi.h"
@@ -18,7 +22,7 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config/*, TexNeut& tex*/) : input(in.GetGobbi()), Histo(hist), input_qdc(in.GetQDC()),input_tdc(in.GetTDC())/*, texneut(tex)*/ {
+Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config, int run, event& neut) : input(in.GetGobbi()), Histo(hist), input_qdc(in.GetQDC()),input_tdc(in.GetTDC()), texneut(neut) {
   Targetdist = config.GetTargDist();//23.95;//23.95;//24.1;//23.5; //cm //TODO is this correct? Shoud target dist be taken from input?
   TargetThickness = config.GetTargThick();;//3.2;//2.65; //mg/cm^2 for CD2 tar1 //TODO same as targ dist but for thickness
   //TargetThickness = 3.8; //mg/cm^2
@@ -36,6 +40,18 @@ Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config/*, TexNeut& tex*/) : inp
   FrontTimecal = new calibrate(4, Histo.channum, calDir + config.GetFrontTimecalFile(),1, false);
   BackTimecal = new calibrate(4, Histo.channum, calDir + config.GetBackTimecalFile(),1, false);  
   DeltaTimecal = new calibrate(4, Histo.channum, calDir + config.GetDeltaTimecalFile(),1, false);
+  
+  DiamondEcal = new calibrate(1, 2, calDir + config.GetDiamondEcalFile(),1, false);
+  
+  //Run number
+  runnum = run;
+  
+  //Choose diamond calibration channel
+  // channel 0 of cal file: Runs < 561, diamond cal with 0.6 attentuation factor
+  if (runnum < 561) diamond_calch = 0;
+  else if (runnum >= 561) diamond_calch = 1;
+  else diamond_calch = -1;
+  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -54,22 +70,48 @@ Gobbi::~Gobbi() {
 
 bool Gobbi::analyze() {
 	
+	//Set neutron multiplicity to zero
+	num_neut = 0;
+	
+	//Vector holding calibrated diamond energies, same indices as input_qdc.qh
+	//Clear each loop
+	diamond_Ecal.clear();
 
 	//Look at diamond detector
 	for (int i=0;i<input_qdc.chan.size();i++) {
+	
+		//Get calibrated diamond energies
+		diamond_Ecal.push_back(0);
+		if (diamond_calch > -1) diamond_Ecal[i] = (DiamondEcal->getEnergy(0, diamond_calch, input_qdc.qh[i]));
+	
 		if (input_qdc.chan[i] == 0) {
 			Histo.DiamondQDC0->Fill(input_qdc.qh[i]);
+			Histo.DiamondQDC0_cal->Fill(diamond_Ecal[i]);
 			
 			//Gated on or A tdc
-			if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
-				Histo.DiamondQDC0_tgate_orA->Fill(input_qdc.qh[i]);
+			if (input_tdc.Nhits[1] != 0) {
+				if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+					Histo.DiamondQDC0_tgate_orA->Fill(input_qdc.qh[i]);
+					Histo.DiamondQDC0_tgate_orA_cal->Fill(diamond_Ecal[i]);
+				}
+				Histo.DiamondQDC0_vs_torA->Fill(input_qdc.qh[i],input_tdc.t[1][0]);
+				Histo.DiamondQDC0_vs_torA_cal->Fill(diamond_Ecal[i],input_tdc.t[1][0]);
 			}
-			
 		}
 		if (input_qdc.chan[i] == 1) Histo.DiamondQDC1->Fill(input_qdc.qh[i]);
+		if (input_qdc.chan[i] == 1) Histo.DiamondQDC1_cal->Fill(diamond_Ecal[i]);
 	}
 	
-
+	//Shift the TexNeut gamma time peaks so that they align with TexNeut board 1
+	float TN_TDCShift[12] = {0,0.078,1.207,0.994,6.821,7.356,-0.867,
+													 -0.943,0.259,-0.141,0.697,-0.19500000};
+													 
+	//array of shifted values, only take first for now			 
+	float TN_TDC_shift[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+	
+	//array of first hits that fall into the neutron time gates
+	//Save the unshifted version
+	float TN_TDC_neutrons[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 	
 	//Fill TDC plots
 	for (int i=0;i<16;i++) {
@@ -79,7 +121,25 @@ bool Gobbi::analyze() {
 		for (int j=0;j<input_tdc.Nhits[i];j++) {
 			Histo.TDC_Plot[i]->Fill(input_tdc.t[i][j]);
 		}
+		
+		Histo.TDC_sum->Fill(i,input_tdc.t[i][0]); //Only take 1st for now
+		if (i > 3) {
+			Histo.TDC_sum_TN->Fill(i-4,input_tdc.t[i][0]); //TexNeut channels only
+			
+			TN_TDC_shift[i-4] = input_tdc.t[i][0] - TN_TDCShift[i-4];
+			Histo.TDC_sum_TN_shift->Fill(i-4,TN_TDC_shift[i-4]);
+			Histo.TDC_Plot_TN_shift[i-4]->Fill(TN_TDC_shift[i-4]);
+			
+			if (TN_TDC_shift[i-4] >= TN_TDClow && TN_TDC_shift[i-4] <= TN_TDChigh) {
+				TN_TDC_neutrons[i-4] = input_tdc.t[i][0];
+				num_neut++;
+			}
+		}
 	}
+	
+	if (num_neut > 0) Histo.neutron_mult->Fill(num_neut);
+	
+	if (num_neut > num_neut_highest) num_neut_highest = num_neut;
 	
 	//Make time gates using TDC
 	//Add them as you go
@@ -260,6 +320,27 @@ bool Gobbi::analyze() {
       //cout << "front strip " << Silicon[id]->Solution[isol].ifront << "  back strip " << Silicon[id]->Solution[isol].iback << endl;
       //cout << "x " << Silicon[id]->Solution[isol].Xpos << "  y " << Silicon[id]->Solution[isol].Ypos << endl;
       //cout << "E " << Silicon[id]->Solution[isol].energy << "  dE " << Silicon[id]->Solution[isol].denergy << endl;
+      
+      //Fill QDC vs Gobbi Esum plots
+			for (int i=0;i<input_qdc.chan.size();i++) {
+      	if (input_qdc.chan[i] == 0) {
+      		Histo.Diamond_vs_GobbiEsum[id]->Fill(Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy,input_qdc.qh[i]);
+      		Histo.Diamond_vs_GobbiEsum_cal[id]->Fill(Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy,diamond_Ecal[i]);
+      		
+      		
+					//Gated on or A tdc
+					if (input_tdc.Nhits[1] != 0) {
+						if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+      				Histo.Diamond_vs_GobbiEsum_torA[id]->Fill(Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy,input_qdc.qh[i]);
+      				Histo.Diamond_vs_GobbiEsum_torA_cal[id]->Fill(Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy,diamond_Ecal[i]);
+						}
+					}	
+      		
+      	}
+      }
+      
+      //Front vs back plots
+      Histo.FrontvsBack[id]->Fill(Silicon[id]->Solution[isol].energy,Silicon[id]->Solution[isol].benergy);
 
       //fill in dE-E plots to select particle type
       float Ener = Silicon[id]->Solution[isol].energy + Silicon[id]->Solution[isol].denergy*(1-cos(Silicon[id]->Solution[isol].theta));
@@ -357,6 +438,22 @@ bool Gobbi::analyze() {
       if (Silicon[id]->Solution[isol].energy > 37 && Silicon[id]->Solution[isol].energy < 43 && Silicon[id]->Solution[isol].denergy > 5.5 && Silicon[id]->Solution[isol].denergy < 8.5) {
       	Histo.xyhitmap_EdEgate_2ndEL->Fill(xpos,ypos);
       }
+      
+      //Gated on QDC energy
+      if (input_qdc.chan.size() > 0) {
+      	for (int i=0;i<input_qdc.chan.size();i++) {
+      		if (input_qdc.chan[i] == 0 && input_qdc.qh[i] < 2000) {
+      		  Histo.xyhitmap_DiamondELlow->Fill(xpos,ypos);
+      		}
+      		if (input_qdc.chan[i] == 0 && input_qdc.qh[i] >= 2000 && input_qdc.qh[i] <= 2300) {
+      		  Histo.xyhitmap_DiamondELpeak->Fill(xpos,ypos);
+      		}
+      		if (input_qdc.chan[i] == 0 && input_qdc.qh[i] > 2300) {
+      		  Histo.xyhitmap_DiamondELhigh->Fill(xpos,ypos);
+      		}
+      	}
+      }
+
       
       //protons
       if (Silicon[id]->Solution[isol].iZ == 1 && Silicon[id]->Solution[isol].iA == 1)
@@ -501,6 +598,21 @@ bool Gobbi::analyze() {
       //cout << "After    1=" << particlenum[0] << "   2=" << particlenum[1] << endl;
       Histo.CorrelationTable->Fill(particlenum[0],particlenum[1]);
     }
+    
+  	//Count certain particle combinations
+  	if (Correl.proton.mult == 1 && Correl.alpha.mult == 1) {
+  		// OR A time gate
+  		if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+				if (num_neut == 0) a_p_0n++;
+				if (num_neut == 1) a_p_1n++;
+				if (num_neut == 2) a_p_2n++;
+				if (num_neut == 3) a_p_3n++;
+				
+				if (num_neut > 0) a_p_withn++;
+			}
+  	}
+    
+    
   }
 
   
@@ -759,6 +871,36 @@ void Gobbi::corr_6Li()
     Histo.Erel_6Li_da->Fill(Erel_6Li);
     Histo.Ex_6Li_da->Fill(Ex);
 
+		//OR A gate
+		if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+			Histo.Erel_6Li_da_tgate_orA->Fill(Erel_6Li);
+			Histo.Erel_6Li_da_vsDiamond_tgate_orA->Fill(Erel_6Li,input_qdc.qh[0]);
+		}
+
+		for (int i=0;i<input_qdc.chan.size();i++) {
+			if (input_qdc.chan[i] == 0) {
+				//Sum energies
+				float partsum = Correl.frag[0]->energy+Correl.frag[0]->denergy + Correl.frag[1]->energy+Correl.frag[1]->denergy;
+			
+				//vs diamond Q
+				Histo.Erel_6Li_da_vsDiamond->Fill(Erel_6Li,input_qdc.qh[0]);
+				Histo.Diamond_vs_GobbiEsum_cal_6Li[Correl.frag[0]->itele]->Fill(partsum,diamond_Ecal[i]);
+				Histo.Diamond_vs_GobbiEsum_cal_6Li[Correl.frag[1]->itele]->Fill(partsum,diamond_Ecal[i]);
+				
+				if (Ex > 2 && Ex < 2.4) {
+				
+					Histo.sumDiamond_vs_GobbiEsum_cal_6Li_3plus->Fill(partsum,diamond_Ecal[i]);
+					
+					//Gated on time or A
+					if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+						Histo.sumDiamond_vs_GobbiEsum_cal_6Li_3plus_torA->Fill(partsum,diamond_Ecal[i]);
+					}
+				}
+				
+			}
+		}
+		
+
     Histo.cos_thetaH_da->Fill(Correl.cos_thetaH);
     Histo.ThetaCM_6Li_da->Fill(thetaCM*180./acos(-1));
     Histo.VCM_6Li_da->Fill(Correl.velocityCM);
@@ -772,6 +914,13 @@ void Gobbi::corr_6Li()
 
     Histo.cos_da_thetaH->Fill(Correl.cos_thetaH);
     Histo.Erel_da_cosThetaH->Fill(Erel_6Li,Correl.cos_thetaH);
+
+		//Hitmap gated on 3+ state
+		if (Ex > 2 && Ex < 2.4) {
+			//Light then heavy
+			Histo.xyhitmap_6Li_plus->Fill(Correl.frag[0]->Xpos,Correl.frag[0]->Ypos);
+			Histo.xyhitmap_6Li_plus->Fill(Correl.frag[1]->Xpos,Correl.frag[1]->Ypos);
+		}
 
     if (Ex > 2 && Ex < 2.5)
     {

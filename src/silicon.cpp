@@ -43,7 +43,7 @@ void silicon::init(int id0, SortConfig& config)
 
 void silicon::SetTargetDistance(double dist)
 {
-  for (int i=0;i<10;i++) Solution[i].SetTargetDistance(dist);
+  for (int i=0;i<20;i++) Solution[i].SetTargetDistance(dist);
 }
 
 
