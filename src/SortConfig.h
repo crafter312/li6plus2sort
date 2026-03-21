@@ -23,33 +23,37 @@ private:
 	std::string frontEcalFile;
 	std::string backEcalFile;
 	std::string deltaEcalFile;
+	std::string diamondEcalFile;
 	std::string frontTimecalFile;
 	std::string backTimecalFile;
 	std::string deltaTimecalFile;
 	float targdist;
 	float targthick;
+	size_t updateRate;
 
 public:
 	SortConfig(std::string configFilePath);
 
 	// Getters
-	std::string GetTnlibConfig() { return tnlibConfig; }
-	std::string GetRunNumbersFile() { return runNumbersFile; }
-	std::string GetItreeName() { return itreeName; }
-	std::string GetOfileName() { return ofileName; }
-	std::string GetOtreeName() { return otreeName; }
-	std::string GetLossDir() { return lossDir; }
-	std::string GetPIDDir() { return PIDDir; }
-	std::string GetTargetSuffix() { return targetSuffix; }
-	std::string GetCalDir() { return calDir; }
-	std::string GetFrontEcalFile() { return frontEcalFile; }
-	std::string GetBackEcalFile() { return backEcalFile; }
-	std::string GetDeltaEcalFile() { return deltaEcalFile; }
-	std::string GetFrontTimecalFile() { return frontTimecalFile; }
-	std::string GetBackTimecalFile() { return backTimecalFile; }
-	std::string GetDeltaTimecalFile() { return deltaTimecalFile; }
-	float GetTargDist() { return targdist; }
-	float GetTargThick() { return targthick; }
+	std::string GetTnlibConfig() const { return tnlibConfig; }
+	std::string GetRunNumbersFile() const { return runNumbersFile; }
+	std::string GetItreeName() const { return itreeName; }
+	std::string GetOfileName() const { return ofileName; }
+	std::string GetOtreeName() const { return otreeName; }
+	std::string GetLossDir() const { return lossDir; }
+	std::string GetPIDDir() const { return PIDDir; }
+	std::string GetTargetSuffix() const { return targetSuffix; }
+	std::string GetCalDir() const { return calDir; }
+	std::string GetFrontEcalFile() const { return frontEcalFile; }
+	std::string GetBackEcalFile() const { return backEcalFile; }
+	std::string GetDeltaEcalFile() const { return deltaEcalFile; }
+	std::string GetDiamondEcalFile() const { return diamondEcalFile; }
+	std::string GetFrontTimecalFile() const { return frontTimecalFile; }
+	std::string GetBackTimecalFile() const { return backTimecalFile; }
+	std::string GetDeltaTimecalFile() const { return deltaTimecalFile; }
+	float GetTargDist() const { return targdist; }
+	float GetTargThick() const { return targthick; }
+	size_t GetUpdateRate() const { return updateRate; }
 };
 
 #endif

@@ -27,11 +27,18 @@ Before running the code, make sure to change all of the configuration settings i
 # TexNeut input file details
 
 barmap.txt column ordering:
-	- Each PMT gets its own line in this file
-	- `inchip` and `inchipchan` are the PMT chip and channel assigned to each particular PMT
+* Each PMT gets its own line in this file
+* `inchip` and `inchipchan` are the PMT chip and channel numbers assigned to each particular PMT
+* `outchan` is an arbitrary, unique identifying number assigned to each PMT
+* `outtdcchan` is the TDC channel assigned to the PSD board attributed to each PMT
+* `outx` is a unitless position index, the axis of which is horizontal and along the 16 bar/PMT wide side of TexNeut
+* `outy` is a unitless position index, the axis of which is along the remaining horizontal dimension of TexNeut
+* `outbarnum` marks which scintillating bar each PMT is attached two. There should always and only ever be two PMTs with the same `outbarnum`
+* `outAoffset` and `outBoffset` are constant offsets subtracted from each integral value, after scaling by the gain values
 
+```
 inchip | inchipchan | outchan | outtdcchan | outx | outy | outbarnum | outAoffset | outBoffset
-
+```
 
 # Old instructions from Nic
 

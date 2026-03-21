@@ -15,6 +15,8 @@
 #include <sstream>
 #include <string>
 
+#include <eventclass.hpp>
+
 class histo {
 
 protected:
@@ -23,6 +25,16 @@ protected:
 public:
 	histo(std::shared_ptr<ROOT::TBufferMergerFile>);
 	~histo();
+	
+	/******** TEMP TEXNEUT STUFF ********/
+	
+	TDirectoryFile* dirTexNeut;
+	
+	TH2I* barZeroFingers;
+	
+	void TexNeutOutput(event& texneut);
+	
+	/************************************/
 
 	//TODO: replace with CMake/compile-time variables
 	static const int E_boardnum = 8;  // number of boards associated with E silicon detectors
@@ -66,6 +78,9 @@ public:
 	TDirectory* dir8Be;
 	TDirectory* dir9B;
 
+	//Particle multiplicities
+	TH1I* neutron_mult;
+
 	// Summary plots
 	TH2I* sumFrontE_R;
 	TH2I* sumBackE_R;
@@ -86,7 +101,8 @@ public:
 	TH2I* sumBackTime_cal;
 	TH2I* sumDeltaTime_R;
 	TH2I* sumDeltaTime_cal;
-	TH2I* FrontvsBack;
+	//TH2I* FrontvsBack;
+	TH2I* FrontvsBack[4];
 
 	TH2I* sumFrontTimeMult1_cal;
 
@@ -106,12 +122,26 @@ public:
 
 	//Diamond detector plots
 	TH1I* DiamondQDC0;
+	TH1I* DiamondQDC0_cal;
 	TH1I* DiamondQDC1;
+	TH1I* DiamondQDC1_cal;
 	
 	TH1I* DiamondQDC0_tgate_orA;
+	TH1I* DiamondQDC0_tgate_orA_cal;
+	TH2I* DiamondQDC0_vs_torA;
+	TH2I* DiamondQDC0_vs_torA_cal;
+	
+	TH2I* Diamond_vs_GobbiEsum[4];
+	TH2I* Diamond_vs_GobbiEsum_cal[4];
+	TH2I* Diamond_vs_GobbiEsum_torA[4];
+	TH2I* Diamond_vs_GobbiEsum_torA_cal[4];
 	
 	//TDC plots
 	TH1I * TDC_Plot[16];
+	TH2I * TDC_sum;
+	TH2I * TDC_sum_TN;
+	TH2I * TDC_sum_TN_shift; //Shifted gamma peak relative to the 1st board
+	TH1I * TDC_Plot_TN_shift[12];
 
 	// Delta E silicon plots
 	TH1I* DeltaE_R[4][channum];
@@ -143,6 +173,10 @@ public:
 	TH2I* LiVETOhitmap;
 	TH2I* hitmapof_p;
 	TH2I* hitmapof_6He;
+	
+	TH2I* xyhitmap_DiamondELlow;
+	TH2I* xyhitmap_DiamondELpeak;
+	TH2I* xyhitmap_DiamondELhigh;
 
 	TH2I* Evstheta[4];
 	TH2I* Evstheta_all;
@@ -212,6 +246,9 @@ public:
 	TH2I* Erel_npa_cosThetaH;
 	
 	TH1I* Erel_6Li_da;
+	TH1I* Erel_6Li_da_tgate_orA;
+	TH2I* Erel_6Li_da_vsDiamond;
+	TH2I* Erel_6Li_da_vsDiamond_tgate_orA;
 	TH1I* Ex_6Li_da_trans;
 	TH1I* Ex_6Li_da_long;
 	TH1I* Ex_6Li_da;
@@ -226,6 +263,15 @@ public:
 	TH2I* deutE_gate_cosThetaH;
 	TH2I* alphaE_gate_cosThetaH;
 	TH1I* react_origin_tdiff;
+	
+	TH2I* xyhitmap_6Li_plus;
+	
+	TH2I* sumDiamond_vs_GobbiEsum_cal_6Li_3plus;
+	
+	TH2I* sumDiamond_vs_GobbiEsum_cal_6Li_3plus_torA;
+	
+	TH2I* Diamond_vs_GobbiEsum_cal_6Li[4];
+	TH2I* Diamond_vs_GobbiEsum_cal_6Li_torA[4];
 
 	// Li7
 	TH1I* Erel_7Li_p6He;

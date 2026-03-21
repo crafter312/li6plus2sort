@@ -81,7 +81,7 @@ void calsumplots() {
   //Delta file : run-511-par
   //E file : run-509-510-par
 
-	string iprefix = "run-511-par";
+	string iprefix = "run-562-par";
 	string path = "../../data/";
 	size_t numentries;
 
@@ -103,8 +103,14 @@ void calsumplots() {
   cout << "Num entries in tree: " << numentries << endl;
 
 	//Root output file
-  TFile * outfile = new TFile("SiUnpacker.root", "RECREATE");
+  TFile * outfile = new TFile("ShortTreeUnpacker.root", "RECREATE");
   outfile->cd();
+
+	TH2I * TN_timesum[BOARD_COUNT];
+	for (int i=0;i<BOARD_COUNT;i++) {
+		string direcname = "TexNeutBoard" + to_string(i+1);
+		TN_timesum[i] = new TH2I(direcname.c_str(),"",8,-0.5,7.5,2048,0,8192);
+	}
 
   //Delta E spectrum
   TH2I * DeltaSumCal = new TH2I("DeltaESum_Cal","",128,0,128,2000,0,80);
@@ -141,7 +147,7 @@ void calsumplots() {
 		}
 		
 	}
-
+	
   //Calibration filepath
   string calpath = "../Cal/";
   string file_front = calpath + "FrontEcal.dat";
@@ -149,22 +155,32 @@ void calsumplots() {
   string file_delta = calpath + "DeltaEcal.dat";
 
   vector<vector<float>> calvec = getcalvals(file_front.c_str(),file_back.c_str(),file_delta.c_str());
-  cout << calvec[0][0] << " " << calvec[0][1] << endl;
 
   TTreeReader reader(tree);
   TTreeReaderValue<vector<size_t>> board(reader, "board");
   TTreeReaderValue<vector<size_t>> channel(reader, "chan");
   TTreeReaderValue<vector<size_t>> energy(reader, "e");
   TTreeReaderValue<vector<size_t>> time(reader, "t");
+  
+  //texneut stuff
+  TTreeReaderValue<vector<size_t>> TT_TNchip(reader, "psd_chip");
+  TTreeReaderValue<vector<size_t>> TT_TNchan(reader, "psd_chan");
+  TTreeReaderValue<vector<size_t>> TT_TNtime(reader, "psd_t");
 
   while (reader.Next()) {
     vector<size_t> evec = *energy;
     vector<size_t> boardvec = *board;
     vector<size_t> chanvec = *channel;
     vector<size_t> timevec = *time;
+    
+    vector<size_t> TNchip = *TT_TNchip;
+    vector<size_t> TNchan = *TT_TNchan;
+    vector<size_t> TNtime = *TT_TNtime;
+    vector<size_t> TNboard;
 
     vector<float> Ecal;
 
+		//Gobbi stuff
     for (int i=0;i<boardvec.size();i++) {
       int index = (boardvec[i]-1)*32 + chanvec[i];
       Ecal.push_back(evec[i]*calvec[index][1] + calvec[index][0]);
@@ -192,6 +208,15 @@ void calsumplots() {
       }
       timeplot[boardvec[i]-1][chanvec[i]]->Fill(timevec[i]);
       eplot[boardvec[i]-1][chanvec[i]]->Fill(evec[i]);
+    }
+    
+    //TexNeut stuff
+    for (int i=0;i<TNchip.size();i++) {
+    
+    	//get board number, goes as 1 (1,2), 2 (3,4), 3 (5,6), etc.
+    	if (TNchip[i] %2 == 0) TNboard.push_back(TNchip[i]/2);
+    	else TNboard.push_back((TNchip[i] +1)/2);
+    	TN_timesum[TNboard[i]-1]->Fill(TNchan[i],TNtime[i]);
     }
     
   }

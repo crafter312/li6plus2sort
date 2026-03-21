@@ -1,5 +1,7 @@
 #include "histo.h"
 
+#include <vector>
+
 using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -9,6 +11,18 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   file_read->cd();
 
   //// Create subdirectories to store arrays of spectra
+  
+  /******** TEMP TEXNEUT STUFF ********/
+  
+  dirTexNeut = new TDirectoryFile("TexNeut", "TexNeut");
+  
+  dirTexNeut->cd();
+  
+  barZeroFingers = new TH2I("barZeroFingers","",8192,0,8192,8192,0,8192);
+  
+  /************************************/
+
+	file_read->cd();
 
   dirSummary = new TDirectoryFile("Summary", "Summary"); // name, title
 
@@ -55,6 +69,9 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   dir7Be = dirInvMass->mkdir("7Be","7Be");
   dir8Be = dirInvMass->mkdir("8Be","8Be");
   dir9B  = dirInvMass->mkdir("9B","9B");
+
+	//Particle multiplicities
+	neutron_mult = new TH1I("neutron_mult","",10,0.5,10.5);
 
   dirSummary->cd();
 
@@ -112,9 +129,15 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   sumFrontTimeMult1_cal = new TH2I("sumFrontTimeMult1_cal","",4*channum,0,4*channum,512,0,16383);
   sumFrontTimeMult1_cal->SetOption("colz");
 
-  FrontvsBack = new TH2I("FrontvsBack","",500,0,20,500,0,20);
-
   ostringstream name;
+  //FrontvsBack = new TH2I("FrontvsBack","",500,0,20,500,0,20);
+  for (int i=0;i<4;i++) {
+  	name.str("");
+  	name << "FrontvsBack_" << i;
+  	FrontvsBack[i] = new TH2I(name.str().c_str(),"",500,0,80,500,0,80);
+  }
+
+
   // Create all 1d Front spectra
   for (int board_i = 0; board_i < E_boardnum / 2; board_i++) {
     for (int chan_i = 0; chan_i < channum; chan_i++) {
@@ -225,18 +248,51 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
 	//Diamond detector plots
 	dirDiamond->cd();
 	DiamondQDC0 = new TH1I("DiamondQDC0","",1024,0,4192);
+	DiamondQDC0_cal = new TH1I("DiamondQDC0_cal","",625,0,25);
 	DiamondQDC1 = new TH1I("DiamondQDC1","",1024,0,4192);
+	DiamondQDC1_cal = new TH1I("DiamondQDC1_cal","",625,0,25);
 	
 	DiamondQDC0_tgate_orA = new TH1I("DiamondQDC0_tgate_orA","",1024,0,4192);
+	DiamondQDC0_tgate_orA_cal = new TH1I("DiamondQDC0_tgate_orA_cal","",625,0,25);	
+
+	DiamondQDC0_vs_torA = new TH2I("DiamondQDC0_vs_torA","",1024,0,4192,1000,-500,500);
+	DiamondQDC0_vs_torA_cal = new TH2I("DiamondQDC0_vs_torA_cal","",625,0,25,1000,-500,500);
+	
+	for (int i=0;i<4;i++) {
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_" << i;
+		Diamond_vs_GobbiEsum[i] = new TH2I(name.str().c_str(),"",500,0,80,1024,0,4192);
+		
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_cal_" << i;
+		Diamond_vs_GobbiEsum_cal[i] = new TH2I(name.str().c_str(),"",500,0,80,625,0,25);
+		
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_torA_" << i;
+		Diamond_vs_GobbiEsum_torA[i] = new TH2I(name.str().c_str(),"",500,0,80,1024,0,4192);
+		
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_torA_cal_" << i;
+		Diamond_vs_GobbiEsum_torA_cal[i] = new TH2I(name.str().c_str(),"",500,0,80,625,0,25);
+	}
 	
 	//TDC plots
 	dirTDC->cd();
 	for (int i=0;i<16;i++) {
 		name.str("");
 		name << "TDCspect_" << i;
-		TDC_Plot[i] = new TH1I(name.str().c_str(),"",2500,-500,500);
+		TDC_Plot[i] = new TH1I(name.str().c_str(),"",1000,-500,500);
+
+		if (i > 3) {
+			name.str("");
+			name << "TDCspect_TN_shift" << i-4;
+			TDC_Plot_TN_shift[i-4] = new TH1I(name.str().c_str(),"",1000,-500,500);
+		}
 	}
 	
+	TDC_sum = new TH2I("TDC_sum","",16,-0.5,15.5,1000,-500,500);
+	TDC_sum_TN = new TH2I("TDC_sum_TN","",12,-0.5,11.5,1000,-500,500);
+	TDC_sum_TN_shift = new TH2I("TDC_sum_TN_shift","",12,-0.5,11.5,1000,-500,500);
   // Create all spectra based on quadrants
   dirDEEplots->cd();
   for (int quad = 0; quad < 4; quad++) {
@@ -274,6 +330,10 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
 
   hitmapof_p = new TH2I("hitmapof_p","", 100,-10,10,100,-10,10);
   hitmapof_6He = new TH2I("hitmapof_6He","", 100,-10,10,100,-10,10);
+  
+ 	xyhitmap_DiamondELlow = new TH2I("xyhitmap_DiamondELlow","", 100,-10,10,100,-10,10);
+  xyhitmap_DiamondELpeak = new TH2I("xyhitmap_DiamondELpeak","", 100,-10,10,100,-10,10);
+ 	xyhitmap_DiamondELhigh = new TH2I("xyhitmap_DiamondELhigh","", 100,-10,10,100,-10,10);
 
   Evstheta[0] = new TH2I("Evstheta0","",50,0,25,Nbin,0,Ecal_Emax);
   Evstheta[1] = new TH2I("Evstheta1","",50,0,25,Nbin,0,Ecal_Emax);
@@ -355,10 +415,13 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   cos_npa_thetaH = new TH1I("cos_npa_thetaH","",100,-1.1,1.1);
   Erel_npa_cosThetaH = new TH2I("Erel_npa_cosThetaH","",200,0,3,25,-1,1);
   
-  Erel_6Li_da = new TH1I("Erel_6Li_da","",500,0,5);
-  Ex_6Li_da_trans = new TH1I("Ex_6Li_da_trans","",500,0,5);
-  Ex_6Li_da_long = new TH1I("Ex_6Li_da_long","",500,0,5);
-  Ex_6Li_da = new TH1I("Ex_6Li_da","",500,0,5);
+  Erel_6Li_da = new TH1I("Erel_6Li_da","",2000,0,15);
+  Erel_6Li_da_tgate_orA = new TH1I("Erel_6Li_da_tgate_orA","",2000,0,15);
+  Erel_6Li_da_vsDiamond = new TH2I("Erel_6Li_da_vsDiamond","",2000,0,15, 1024,0,4096);
+  Erel_6Li_da_vsDiamond_tgate_orA = new TH2I("Erel_6Li_da_vsDiamond_tgate_orA","",2000,0,15, 1024,0,4096);
+  Ex_6Li_da_trans = new TH1I("Ex_6Li_da_trans","",2000,-5,10);
+  Ex_6Li_da_long = new TH1I("Ex_6Li_da_long","",2000,-5,10);
+  Ex_6Li_da = new TH1I("Ex_6Li_da","",2000,-5,10);
   cos_thetaH_da = new TH1I("cos_thetaH_da","",100,-1.1,1.1);
   ThetaCM_6Li_da = new TH1I("ThetaCM_6Li_da","",200,0,25);
   VCM_6Li_da = new TH1I("VCM_6Li_da","",100,1.5,4.5);
@@ -373,6 +436,22 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   alphaE_gate_cosThetaH = new TH2I("alphaE_gate_cosThetaH","",200,0,35,100,-1,1);
 
 	react_origin_tdiff = new TH1I("react_origin_tdiff","",2000,-100,100);
+	
+	xyhitmap_6Li_plus = new TH2I("xyhitmap_6Li_plus","",100,-10,10,100,-10,10);
+	
+	sumDiamond_vs_GobbiEsum_cal_6Li_3plus = new TH2I("sumDiamond_vs_GobbiEsum_cal_6Li_3plus","",200,0,80,100,0,25);	
+	
+	sumDiamond_vs_GobbiEsum_cal_6Li_3plus_torA = new TH2I("sumDiamond_vs_GobbiEsum_cal_6Li_3plus_torA","",200,0,80,100,0,25);	
+
+	for (int i=0;i<4;i++) {
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_cal_6Li_" << i;
+		Diamond_vs_GobbiEsum_cal_6Li[i] = new TH2I(name.str().c_str(),"",200,0,80,100,0,25);
+		
+		name.str("");
+		name << "Diamond_vs_GobbiEsum_cal_6Li_torA_" << i;
+		Diamond_vs_GobbiEsum_cal_6Li_torA[i] = new TH2I(name.str().c_str(),"",200,0,80,100,0,25);
+	}
 
   // Li7
 	// p + 6He
@@ -504,6 +583,17 @@ histo::~histo() {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void histo::TexNeutOutput(event& texneut) {
+	vector<int> bars = texneut.get_barshit();
+	vector<int> Aint_top = texneut.get_Aint("top");
+	vector<int> Aint_bottom = texneut.get_Aint("bot");
+	
+	for (int i = 0; i < texneut.get_coupledhits(); i++) {
+		if (bars[i] == 0)
+			barZeroFingers->Fill(Aint_bottom[i], Aint_top[i]);
+	}
+}
 
 
 

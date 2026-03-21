@@ -50,6 +50,8 @@ SortConfig::SortConfig(string configFilePath) {
 			backEcalFile = line.substr(line.find('=') + 2);
 		else if (line.find("deltaEcalFile") != string::npos)
 			deltaEcalFile = line.substr(line.find('=') + 2);
+		else if (line.find("diamondEcalFile") != string::npos)
+			diamondEcalFile = line.substr(line.find('=') + 2);
 		else if (line.find("frontTimecalFile") != string::npos)
 			frontTimecalFile = line.substr(line.find('=') + 2);
 		else if (line.find("backTimecalFile") != string::npos)
@@ -57,12 +59,31 @@ SortConfig::SortConfig(string configFilePath) {
 		else if (line.find("deltaTimecalFile") != string::npos)
 			deltaTimecalFile = line.substr(line.find('=') + 2);
 		else if (line.find("targdist") != string::npos) {
-			std::string temps = line.substr(line.find('=') + 2);
-			targdist = std::stof(temps);
+			string temps = line.substr(line.find('=') + 2);
+			try {
+				targdist = stof(temps);
 			}
+			catch (...) {
+				throw invalid_argument("targdist in config file " + configFilePath + " is not a valid float");
+			}
+		}
 		else if (line.find("targthick") != string::npos) {
-			std::string temps = line.substr(line.find('=') + 2);
-			targthick = std::stof(temps); 
+			string temps = line.substr(line.find('=') + 2);
+			try {
+				targthick = std::stof(temps);
+			}
+			catch (...) {
+				throw invalid_argument("targthick in config file " + configFilePath + " is not a valid float");
+			}
+		}
+		else if (line.find("updateRate") != string::npos) {
+			string temps = line.substr(line.find('=') + 2);
+			try {
+				sscanf(temps.c_str(), "%zu", &updateRate); // Note that the `z` specifier is Linux only, and will have to be changed for this to work on Windows
+			}
+			catch (...) {
+				throw invalid_argument("targthick in config file " + configFilePath + " is not a valid size_t (unsigned integer)");
+			}
 		}
 	}
 	configfile.close();
