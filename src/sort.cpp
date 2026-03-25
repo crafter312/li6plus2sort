@@ -112,6 +112,9 @@ int main() {
 			// Gobbi analysis
 			gobbi.analyze();
 			
+			// Output
+			Histo.TexNeutOutput(texneutevent);
+			
 			// Handle progress bar
 			localCounter++;
 			if (localCounter >= updateRate) {

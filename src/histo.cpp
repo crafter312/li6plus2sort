@@ -18,7 +18,8 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
   
   dirTexNeut->cd();
   
-  barZeroFingers = new TH2I("barZeroFingers","",8192,0,8192,8192,0,8192);
+  topDownMap = new TH2I("topDownMap","",16,0,16,6,0,6);
+  barZeroFingers = new TH2I("barZeroFingers","",1024,0,8192,1024,0,8192);
   
   /************************************/
 
@@ -578,7 +579,6 @@ histo::histo(shared_ptr<ROOT::TBufferMergerFile> f) {
 
 histo::~histo() {
   file_read->Write();
-  cout << "histo written" << endl;
   //file_read->Close();
 }
 
@@ -586,10 +586,13 @@ histo::~histo() {
 
 void histo::TexNeutOutput(event& texneut) {
 	vector<int> bars = texneut.get_barshit();
+	vector<double> x = texneut.get_hitcoord(0);
+	vector<double> y = texneut.get_hitcoord(1);
 	vector<int> Aint_top = texneut.get_Aint("top");
 	vector<int> Aint_bottom = texneut.get_Aint("bot");
 	
 	for (int i = 0; i < texneut.get_coupledhits(); i++) {
+		topDownMap->Fill(x[i], y[i]);
 		if (bars[i] == 0)
 			barZeroFingers->Fill(Aint_bottom[i], Aint_top[i]);
 	}

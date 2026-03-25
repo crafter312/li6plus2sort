@@ -30,6 +30,7 @@ public:
 	
 	TDirectoryFile* dirTexNeut;
 	
+	TH2I* topDownMap;
 	TH2I* barZeroFingers;
 	
 	void TexNeutOutput(event& texneut);

@@ -40,6 +40,16 @@ barmap.txt column ordering:
 inchip | inchipchan | outchan | outtdcchan | outx | outy | outbarnum | outAoffset | outBoffset
 ```
 
+pmtgains.txt column ordering:
+* Each scintillating bar gets its own line in this file
+* `bar` is the ID number of the scintillating bar, which should match `outbarnum` in `barmap.txt`
+* `pmttop` and `pmtbottom` are the IDs of the top and bottom PMTs for the given scintillating bar, which should match `outchan` for each PMT in `barmap.txt`
+* `topgain` and `botgain` are the scaling values for each PMT's integrals, read into the code as double precision floating point numbers
+
+```
+bar | pmttop | topgain | pmtbot | botgain
+```
+
 # Old instructions from Nic
 
 zlines:
