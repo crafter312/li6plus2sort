@@ -41,7 +41,7 @@ Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config, int run, event& neut) :
   BackTimecal = new calibrate(4, Histo.channum, calDir + config.GetBackTimecalFile(),1, false);  
   DeltaTimecal = new calibrate(4, Histo.channum, calDir + config.GetDeltaTimecalFile(),1, false);
   
-  DiamondEcal = new calibrate(1, 2, calDir + config.GetDiamondEcalFile(),1, false);
+  DiamondEcal = new calibrate(1, 4, calDir + config.GetDiamondEcalFile(),1, false);
   
   //Run number
   runnum = run;
@@ -49,7 +49,9 @@ Gobbi::Gobbi(Input& in, histo& hist, SortConfig& config, int run, event& neut) :
   //Choose diamond calibration channel
   // channel 0 of cal file: Runs < 561, diamond cal with 0.6 attentuation factor
   if (runnum < 561) diamond_calch = 0;
-  else if (runnum >= 561) diamond_calch = 1;
+  else if (runnum >= 561 && runnum > 606) diamond_calch = 1; // 0.4 attenuation factor, -10 V
+  else if (runnum >= 606 && runnum < 613) diamond_calch = 2; // 0.4 attenuation factor, -20 V
+  else if (runnum >= 613) diamond_calch = 3; // 04 attenuation factor, -30 V
   else diamond_calch = -1;
   
 }
@@ -132,9 +134,40 @@ bool Gobbi::analyze() {
 			
 			if (TN_TDC_shift[i-4] >= TN_TDClow && TN_TDC_shift[i-4] <= TN_TDChigh) {
 				TN_TDC_neutrons[i-4] = input_tdc.t[i][0];
-				num_neut++;
 			}
 		}
+	}
+	
+	
+	//Get bars from TexNeut analysis and find neutron multiplicity
+	vector<int> TDCchan_top = texneut.get_TDCchannel("Top");
+	vector<int> TDCchan_bot = texneut.get_TDCchannel("Bot");
+	
+	for (int i=0;i<TDCchan_top.size();i++) {
+
+		bool neuttop = false;
+		bool neutbot = false;
+	
+		//make sure top and bottom channels have a hit
+		if (input_tdc.Nhits[TDCchan_top[i]] == 0 || input_tdc.Nhits[TDCchan_bot[i]] == 0) continue;
+		
+		//Apply neutron time gates
+		for (int j=0;j<input_tdc.Nhits[TDCchan_top[i]];j++) {
+			//Get shifted value (offset is relative to 1st channel)
+			float tdc_shift = input_tdc.t[TDCchan_top[i]][j] - TN_TDCShift[TDCchan_top[i]-4];
+			if (tdc_shift >= TN_TDClow && tdc_shift <= TN_TDChigh) neuttop = true;
+			if (neuttop == true) break; //break if condition met
+		}
+		
+		for (int j=0;j<input_tdc.Nhits[TDCchan_bot[i]];j++) {
+			//Get shifted value (offset is relative to 1st channel)
+			float tdc_shift = input_tdc.t[TDCchan_bot[i]][j] - TN_TDCShift[TDCchan_bot[i]-4];
+			if (tdc_shift >= TN_TDClow && tdc_shift <= TN_TDChigh) neutbot = true;
+			if (neutbot == true) break; //break if condition met
+		}
+		
+		if (neuttop == true && neutbot == true) num_neut++;
+		
 	}
 	
 	if (num_neut > 0) Histo.neutron_mult->Fill(num_neut);

@@ -53,3 +53,6 @@ build/*
 *.jpg
 *.jpeg
 *.gif
+
+# Other
+.nfs000000020155f23a000006cd
