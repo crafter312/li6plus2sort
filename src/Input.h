@@ -147,7 +147,7 @@ public:
 		
 		// Vector for TDC hit values
 		size_t Nhits[TDC_CHAN_COUNT]; // one for each channel
-		std::vector<int> t[TDC_CHAN_COUNT]; // outermost array stores channels, innermost vector stores hits
+		std::vector<double> t[TDC_CHAN_COUNT]; // outermost array stores channels, innermost vector stores hits
 		
 		void clear() {
 			for (int i = 0;i < TDC_CHAN_COUNT; i++) {
@@ -158,12 +158,12 @@ public:
 		
 		// Hit getter functions
 		size_t GetNHits(size_t ch) const { return Nhits[ch]; }
-		std::optional<int> GetT(size_t ch, size_t i) { return (i >= t[ch].size()) ? std::nullopt : std::optional<int>(t[ch][i]); }
+		std::optional<double> GetT(size_t ch, size_t i) { return (i >= t[ch].size()) ? std::nullopt : std::optional<double>(t[ch][i]); }
 		
 		// Group channel hits into single vector for interface with TexNeut
 		// Make sure that this properly accesses the TDC channels dedicated to TexNeut (4-16 in my case)
 		// For now, only consider the first hit in each TDC channel
-		void FillTexNeutHitVectors(std::vector<size_t>& chan, std::vector<int> tdct) const {
+		void FillTexNeutHitVectors(std::vector<size_t>& chan, std::vector<double>& tdct) const {
 			for (int ch = 0; ch < TDC_CHAN_COUNT; ch++) {
 				if (t[ch].size() == 0) continue;
 				chan.push_back(ch);
