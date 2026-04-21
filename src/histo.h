@@ -8,34 +8,51 @@
 #include <TH1F.h>
 #include <TH1I.h>
 #include <TH2I.h>
+#include <TTree.h>
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <eventclass.hpp>
 
+#include "OutStructs.h"
+
 class histo {
 
-protected:
+private:
+
 	std::shared_ptr<ROOT::TBufferMergerFile> file_read; // thread-safe output ROOT file pointer
 
+	event& texneut; // hold TexNeut event object reference for easy variable retrieval and saving
+
+	// Variables for global tree branches
+	size_t texneutmult{0};              // number of successful pairs of hits per event in TexNeut, a.k.a. "bars"
+	std::vector<OutStructs::TexNeutHit> texneutout; // hit list from TexNeut data containing bar-wise information, should be "texneutmult" in length
+
 public:
-	histo(std::shared_ptr<ROOT::TBufferMergerFile>);
+
+	histo(std::shared_ptr<ROOT::TBufferMergerFile>, event& texneutevent);
 	~histo();
+
+	// Global tree for storing pre-solution variables
+	TTree* tpar;
+
+	void Fill();
 	
-	/******** TEMP TEXNEUT STUFF ********/
+	/******** TEXNEUT STUFF ********/
 	
 	TDirectoryFile* dirTexNeut;
 	
 	TH2I* topDownMap;
 	TH2I* barZeroFingers;
+	TH1I* neutron_mult;
 	
-	void TexNeutOutput(event& texneut);
-	
-	/************************************/
+	/*******************************/
 
 	//TODO: replace with CMake/compile-time variables
 	static const int E_boardnum = 8;  // number of boards associated with E silicon detectors
@@ -78,9 +95,6 @@ public:
 	TDirectory* dir7Be;
 	TDirectory* dir8Be;
 	TDirectory* dir9B;
-
-	//Particle multiplicities
-	TH1I* neutron_mult;
 
 	// Summary plots
 	TH2I* sumFrontE_R;
@@ -273,6 +287,11 @@ public:
 	
 	TH2I* Diamond_vs_GobbiEsum_cal_6Li[4];
 	TH2I* Diamond_vs_GobbiEsum_cal_6Li_torA[4];
+
+	TH1I* Diamond_Ex_6Li;
+	TH1I* Diamond_Ex_6Li_torA;
+	TH1I* Diamond_Ex_6Li_3plus;
+	TH1I* Diamond_Ex_6Li_3plus_torA;
 
 	// Li7
 	TH1I* Erel_7Li_p6He;

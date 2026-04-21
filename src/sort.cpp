@@ -6,7 +6,8 @@
 // library written by Alex Alafa.
 
 #include <atomic>
-#include <ctime>
+#include <chrono>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iomanip>
@@ -34,19 +35,17 @@
 #include "Input.h"
 #include "SortConfig.h"
 
+#include "constants.h"
+
 using namespace std;
 
 int main() {
 
-	clock_t t;
-	t = clock();
+	// Capture the start time
+	auto start = chrono::high_resolution_clock::now();
 	
 	// Load config file for sort code
 	SortConfig sortConfig("../config/sort.config");
-
-	// Enable implicit multi-threading
-	int nthreads = 6;
-	ROOT::EnableImplicitMT(nthreads);
 	
 	// Setup for multi-threaded progress bar
 	const size_t updateRate = sortConfig.GetUpdateRate();
@@ -61,6 +60,11 @@ int main() {
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	string ofname = configFile.GetOutputDir() + sortConfig.GetOfileName();
 	ROOT::TBufferMerger merger(ofname.c_str(), "RECREATE");
+	cout << GREEN << "Output file: " << ofname << RESET << endl;
+
+	// Enable implicit multi-threading
+	int nthreads = 4;
+	ROOT::EnableImplicitMT(nthreads);
 	
 	// Initialize some variables up here so that they are accessible inside the lambda function
 	int runnum;
@@ -73,6 +77,7 @@ int main() {
 	atomic<size_t> count_ap1n{0};
 	atomic<size_t> count_ap2n{0};
 	atomic<size_t> count_ap3n{0};
+	atomic<size_t> count_missTDC{0};
 	
 	/******** EVENT PROCESSING LAMBDA FUNCTION ********/
 	
@@ -85,25 +90,24 @@ int main() {
 
 		// Output using thread safe file
 		auto f = merger.GetFile();
-		f->cd();
 
 		const char* otname = sortConfig.GetOtreeName().c_str();
 
 		// Initialize analysis classes
-		histo Histo(f);
 		event texneutevent;
+		histo Histo(f, texneutevent);
 		Gobbi gobbi(input, Histo, sortConfig, runnum, texneutevent);
 		
 		// Thread-local event loop
 		size_t localCounter = 0;
 		while (reader.Next()) {
-		
+
 			// First, take input file from SpecTcl and refactor into usable hit list format
 			input.ReadAndRefactor();
 			
 			// TexNeut analysis
 			vector<size_t> texneut_tdcchans;
-			vector<int> texneut_tdcts;
+			vector<double> texneut_tdcts;
 			input.GetTDC().FillTexNeutHitVectors(texneut_tdcchans, texneut_tdcts);
 			const Input::TexNeutInput& texin = input.GetTexNeut();
 			texneutevent.CustomFillNecessary(texin.GetNhits(), texin.chip, texin.chan, texin.a, texin.b, texin.c, texin.t, texneut_tdcchans, texneut_tdcts);
@@ -113,7 +117,7 @@ int main() {
 			gobbi.analyze();
 			
 			// Output
-			Histo.TexNeutOutput(texneutevent);
+			Histo.Fill();
 			
 			// Handle progress bar
 			localCounter++;
@@ -135,6 +139,7 @@ int main() {
 		count_ap2n += gobbi.a_p_2n;
 		count_ap3n += gobbi.a_p_3n;
 		count_ap_withn += gobbi.a_p_withn;
+		count_missTDC += texneutevent.Getcount_missTDC();
 	};
 	
 	/******** RUN NUMBER LOOP ********/
@@ -207,11 +212,20 @@ int main() {
 		cout << endl;
 	}
 
-	t = clock() - t;
-	cout << "run time: " << (float)t/CLOCKS_PER_SEC/60 << " min" << endl;
+	// Output program duration
+	auto end = std::chrono::high_resolution_clock::now();
+  chrono::duration<double> elapsed = end - start;
+	int total_seconds = static_cast<int>(elapsed.count());
+	int hours = total_seconds / 3600;
+	int minutes = (total_seconds % 3600) / 60;
+	int seconds = total_seconds % 60;
+	cout << "Run time: "
+	     << setfill('0') << setw(2) << hours << ":"
+	     << setfill('0') << setw(2) << minutes << ":"
+	     << setfill('0') << setw(2) << seconds << endl;
 
 	cout << "************************************************************************" << endl;
-	cout << "EVENT COUNTERS                                                         " << endl;
+	cout << "EVENT COUNTERS                                                          " << endl;
 	cout << "Neutron time gates are in Gobbi.h and counters at bottom of Gobbi main  " << endl;
 	cout << "The PSD time gates are based on offset-adjusted TDC spectra             " << endl;
 	cout << "These counts are also gated on OR A time                                " << endl;
@@ -220,6 +234,9 @@ int main() {
 	cout << "1p + 1a + 2n: " << count_ap2n << endl;
 	cout << "1p + 1a + 3n: " << count_ap3n << endl;
 	cout << "1p + 1a with any number of neutrons: " << count_ap_withn << endl;
+	cout << endl;
+	cout << "DEBUG COUNTERS                                                          " << endl;
+	cout << "TexNeut hits with missing TDC data: " << count_missTDC << endl;
 
 	return 0;
 }

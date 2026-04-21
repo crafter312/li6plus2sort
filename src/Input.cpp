@@ -156,9 +156,9 @@ void Input::ReadAndRefactor() {
 	
 	// Loop through TDC channels to retrieve time hit information
 	size_t chan, hit;
-	int tdc_t;
+	double tdc_t;
 	for (size_t i = 0; i < TDC_NCOLUMNS; i++) {
-		Double_t testt = *(tdc.tRVs[i]);
+		//double testt = *(tdc.tRVs[i]);
 		//cout << "test tdc value " << testt << endl;
 		//cout << "test tdc value " << (int)testt << endl;
 		tdc_t = *(tdc.tRVs[i]); //TODO this returns the max 64-bit value for empty channels, temp cut out > 16384
@@ -171,7 +171,7 @@ void Input::ReadAndRefactor() {
 		}
 		if (isnan(tdc_t) || (abs(tdc_t) >= 10000)) continue;
 		chan = i / (size_t)TDC_HIT_COUNT;
-		//cout << chan << " " << t << endl;
+		//if (chan > 3) cout << chan << " " << tdc_t << endl;
 		tdc.Nhits[chan]++;
 		tdc.t[chan].push_back(tdc_t);
 	}

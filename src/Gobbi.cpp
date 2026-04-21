@@ -919,14 +919,27 @@ void Gobbi::corr_6Li()
 				Histo.Erel_6Li_da_vsDiamond->Fill(Erel_6Li,input_qdc.qh[0]);
 				Histo.Diamond_vs_GobbiEsum_cal_6Li[Correl.frag[0]->itele]->Fill(partsum,diamond_Ecal[i]);
 				Histo.Diamond_vs_GobbiEsum_cal_6Li[Correl.frag[1]->itele]->Fill(partsum,diamond_Ecal[i]);
+
+				//E*?
+				float Ex_13C = 56 - diamond_Ecal[i] - partsum; // If 13C is not at all quenched, then this gives its excitation energy
+				Histo.Diamond_Ex_6Li->Fill(Ex_13C);
+
+				//OR A gate
+				if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
+					Histo.Diamond_vs_GobbiEsum_cal_6Li_torA[Correl.frag[0]->itele]->Fill(partsum,diamond_Ecal[i]);
+					Histo.Diamond_vs_GobbiEsum_cal_6Li_torA[Correl.frag[1]->itele]->Fill(partsum,diamond_Ecal[i]);
+					Histo.Diamond_Ex_6Li_torA->Fill(Ex_13C);
+				}
 				
 				if (Ex > 2 && Ex < 2.4) {
 				
 					Histo.sumDiamond_vs_GobbiEsum_cal_6Li_3plus->Fill(partsum,diamond_Ecal[i]);
+					Histo.Diamond_Ex_6Li_3plus->Fill(Ex_13C);
 					
 					//Gated on time or A
 					if (input_tdc.t[1][0] >= -80 && input_tdc.t[1][0] <= -50) {
 						Histo.sumDiamond_vs_GobbiEsum_cal_6Li_3plus_torA->Fill(partsum,diamond_Ecal[i]);
+						Histo.Diamond_Ex_6Li_3plus_torA->Fill(Ex_13C);
 					}
 				}
 				
