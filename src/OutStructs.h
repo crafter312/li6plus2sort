@@ -18,6 +18,7 @@ namespace OutStructs {
 		double xi, yi, zi;                  // p-Terphenyl crystal indices of hit
 		double x, y, z;                     // Cartesian coordinates of neutron hit relative to target center
 		double rho, theta, phi;             // spherical coordinates of neutron hit relative to target center
+		double c_r, c_th;                   // radius and polar angle in top:bot integral space for per-crystal gating (finger plots)
 
 		void clear() {
 			bar = -1;
@@ -52,6 +53,8 @@ namespace OutStructs {
 		  rho = NAN;
 			theta = NAN;
 			phi = NAN;
+			c_r = NAN;
+			c_th = NAN;
 		}
 	};
 

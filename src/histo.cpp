@@ -631,6 +631,12 @@ void histo::Fill() {
 		texneuthit.theta = acos(texneuthit.z / texneuthit.rho);
 		texneuthit.phi = (texneuthit.y < 0 ? -1. : 1.) * acos(texneuthit.x / sqrt((texneuthit.x*texneuthit.x) + (texneuthit.y*texneuthit.y)));
 
+		// Calculate custom parameters for ease of per-crystal gating
+		if (!isnan(texneuthit.TDCvalue_top) && !isnan(texneuthit.TDCvalue_bot)) {
+			texneuthit.c_r = sqrt((texneuthit.TDCvalue_top*texneuthit.TDCvalue_top) + (texneuthit.TDCvalue_bot*texneuthit.TDCvalue_bot));
+			texneuthit.c_th = atan(texneuthit.TDCvalue_top / texneuthit.TDCvalue_bot);
+		}
+
 		texneutout.push_back(texneuthit);
 	}
 

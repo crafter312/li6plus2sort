@@ -77,7 +77,13 @@ int main() {
 	atomic<size_t> count_ap1n{0};
 	atomic<size_t> count_ap2n{0};
 	atomic<size_t> count_ap3n{0};
+
+	// Counters for TexNeut data (total events with hits>0, total hits, hits missing TDC, hits TDC present, # events with hits>0 and no TDC information at all)
+	atomic<size_t> count_totEvts{0};
+	atomic<size_t> count_totHits{0};
 	atomic<size_t> count_missTDC{0};
+	atomic<size_t> count_presTDC{0};
+	atomic<size_t> count_evnoTDC{0};
 	
 	/******** EVENT PROCESSING LAMBDA FUNCTION ********/
 	
@@ -139,7 +145,11 @@ int main() {
 		count_ap2n += gobbi.a_p_2n;
 		count_ap3n += gobbi.a_p_3n;
 		count_ap_withn += gobbi.a_p_withn;
+		count_totEvts += texneutevent.Getcount_totEvts();
+		count_totHits += texneutevent.Getcount_totHits();
 		count_missTDC += texneutevent.Getcount_missTDC();
+		count_presTDC += texneutevent.Getcount_presTDC();
+		count_evnoTDC += texneutevent.Getcount_evnoTDC();
 	};
 	
 	/******** RUN NUMBER LOOP ********/
@@ -236,7 +246,13 @@ int main() {
 	cout << "1p + 1a with any number of neutrons: " << count_ap_withn << endl;
 	cout << endl;
 	cout << "DEBUG COUNTERS                                                          " << endl;
+	cout << "Total entries in input trees: " << numentries << endl;
+	cout << "Total entries with at least 1 TexNeut hit: " << count_totEvts << endl;
+	cout << "Total TexNeut hits: " << count_totHits << endl;
+	cout << "Avgerage TexNeut hits per event: " << (double)count_totHits / (double)count_totEvts << endl;
 	cout << "TexNeut hits with missing TDC data: " << count_missTDC << endl;
+	cout << "TexNeut hits with TDC data present: " << count_presTDC << endl;
+	cout << "Valid TexNeut events with no TDC information in any of the hits: " << count_evnoTDC << endl;
 
 	return 0;
 }
