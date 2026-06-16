@@ -43,6 +43,8 @@ cmake_install.cmake
 
 # All build files
 build/*
+lib/TNLIB-build/*
+macros/texneut_only_sort/build/*
 
 # Data files
 *.root

@@ -39,7 +39,7 @@
 class Input {
 
 public:
-	Input(TTreeReader&);
+	Input(TTreeReader& r, bool hasGob=true, bool hasTN=true, bool hasQ=true, bool hasT=true);
 	~Input();
 
 	void ReadAndRefactor();
@@ -179,6 +179,7 @@ public:
 	const TDCInput& GetTDC() const { return tdc; }
 
 private:
+
 	// TTreeReader reference for input
 	TTreeReader& reader;
 
@@ -186,6 +187,12 @@ private:
 	TexNeutInput texneut;
 	QDCInput qdc;
 	TDCInput tdc;
+
+	// Boolean switches to enable/disable possible input sources (all true by default)
+	bool hasGobbi{true};
+	bool hasTexNeut{true};
+	bool hasQDC{true};
+	bool hasTDC{true};
 
 	/******** PRIVATE STATIC HELPER FUNCTIONS ********/
 
