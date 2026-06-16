@@ -632,9 +632,9 @@ void histo::Fill() {
 		texneuthit.phi = (texneuthit.y < 0 ? -1. : 1.) * acos(texneuthit.x / sqrt((texneuthit.x*texneuthit.x) + (texneuthit.y*texneuthit.y)));
 
 		// Calculate custom parameters for ease of per-crystal gating
-		if (!isnan(texneuthit.TDCvalue_top) && !isnan(texneuthit.TDCvalue_bot)) {
-			texneuthit.c_r = sqrt((texneuthit.TDCvalue_top*texneuthit.TDCvalue_top) + (texneuthit.TDCvalue_bot*texneuthit.TDCvalue_bot));
-			texneuthit.c_th = atan(texneuthit.TDCvalue_top / texneuthit.TDCvalue_bot);
+		if (!isnan(texneuthit.Aint_top) && !isnan(texneuthit.Aint_bot) && (texneuthit.Aint_top > 0) && (texneuthit.Aint_bot > 0)) {
+			texneuthit.c_r = sqrt((double)(texneuthit.Aint_top*texneuthit.Aint_top) + (double)(texneuthit.Aint_bot*texneuthit.Aint_bot));
+			texneuthit.c_th = atan((double)texneuthit.Aint_top / (double)texneuthit.Aint_bot);
 		}
 
 		texneutout.push_back(texneuthit);
