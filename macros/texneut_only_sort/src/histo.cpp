@@ -31,6 +31,7 @@ void histo::Fill() {
 	texneutmult = texneut.get_coupledhits();
 	for (size_t i = 0; i < texneutmult; i++) {
 		OutStructs::TexNeutHit texneuthit;
+		texneuthit.clear();
 		texneuthit.bar = texneut.get_barshit(i);
 		texneuthit.chip_top = texneut.get_chip(i, "top");
 		texneuthit.chip_bot = texneut.get_chip(i, "bot");
