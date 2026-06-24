@@ -119,7 +119,7 @@ void TNGainMatch() {
 
 		// Calculate scaling value for gain matching and output
 		a = sqrt(tan(out1[1])*tan(out2[1]));
-		ofile << i << " " << a << endl;
+		ofile << i << "\t" << a << endl;
 		cout << "bar #: " << i << ", a: " << a << endl;
 
 		// Wait point at end of loop
