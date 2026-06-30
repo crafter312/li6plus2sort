@@ -32,6 +32,7 @@ void TNCrystalGates() {
 	string ifname = "../RootFiles/sort_all.root";
 	string tname = "tpar";
 	size_t nbars = 96; // 16 bars wide, 6 layers deep for 96 total bars
+	vector<size_t> barlist = {12, 28, 29, 56, 57, 63, 64, 65, 69, 79, 89}; // or process specific bars, if desired
 	string histArg = "texneut.Aint_top:texneut.Aint_bot>>hist";
 
 	// Open TTree with TexNeut results
@@ -60,7 +61,8 @@ void TNCrystalGates() {
 
 	// Make histogram for 2D finger plots
 	double max = 8192;
-	TH2I hist("hist", "hist", 400, 0, max, 400, 0, max);
+	size_t nbins = 1024; // originally started with 400
+	TH2I hist("hist", "hist", nbins, 0, max, nbins, 0, max);
 
 	// Make output file for results
 	ofstream fout("../config/TNCrystalParams.txt");
@@ -78,7 +80,8 @@ void TNCrystalGates() {
 	vector<vector<double>> centerXs, centerYs, topXs, topYs, botXs, botYs;
 	vector<vector<double>> centerKs, topKs, botKs;
 	vector<double> Xmins, Ymins;
-	for (size_t i = 59; i < nbars; i++) {
+	//for (size_t i = 59; i < nbars; i++) { // normal loop for all bars
+	for (size_t i : barlist) { // loop for specific bar #s
 		cout << "==========================================================" << endl;
 		cout << "Selecting crystal gates for bar " << i << ":" << endl;
 		fout << i << endl;
