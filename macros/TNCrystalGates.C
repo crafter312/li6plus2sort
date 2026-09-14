@@ -32,7 +32,7 @@ void TNCrystalGates() {
 	string ifname = "../RootFiles/sort_all.root";
 	string tname = "tpar";
 	size_t nbars = 96; // 16 bars wide, 6 layers deep for 96 total bars
-	vector<size_t> barlist = {12, 28, 29, 56, 57, 63, 64, 65, 69, 79, 89}; // or process specific bars, if desired
+	vector<size_t> barlist = {79,90,91,94}; // or process specific bars, if desired
 	string histArg = "texneut.Aint_top:texneut.Aint_bot>>hist";
 
 	// Open TTree with TexNeut results
@@ -82,7 +82,7 @@ void TNCrystalGates() {
 	vector<double> Xmins, Ymins;
 	//for (size_t i = 59; i < nbars; i++) { // normal loop for all bars
 	for (size_t i : barlist) { // loop for specific bar #s
-		cout << "==========================================================" << endl;
+		cout << "===========================================================" << endl;
 		cout << "Selecting crystal gates for bar " << i << ":" << endl;
 		fout << i << endl;
 		histGate = "texneut.bar==" + to_string(i);
@@ -302,6 +302,8 @@ void TNCrystalGates() {
 	// into the sort code for real, and below
 	// is just for initial testing.
 
+/*
+
 	// The way this works is a -45 degree line
 	// is defined through each point in the
 	// histogram, (xp, yp), with form
@@ -315,8 +317,6 @@ void TNCrystalGates() {
 
 	// AGAIN, THE BELOW CODE WAS FOR TESTING
 	// ONLY AND IS KEPT FOR POSTERITY
-
-/*
 
 	// This function both interpolates or
 	// extrapolates given two points and
@@ -378,7 +378,7 @@ void TNCrystalGates() {
 	tcalc->Branch("Rshift", &Rshift);
 
 	// Main entry loop
-	cout << "==========================================================" << endl;
+	cout << "===========================================================" << endl;
 	cout << "Looping through input TTree entries..." << endl;
 	TTreeReader reader(tpar);
 	TTreeReaderValue<vector<OutStructs::TexNeutHit>> texneutoutRV(reader, "texneut");
@@ -389,7 +389,8 @@ void TNCrystalGates() {
 		// Loop through all hits in event
 		for (OutStructs::TexNeutHit hit : texneutout) {
 			bar = hit.bar;
-			if (bar >= nbars) continue;
+			//if (bar >= nbars) continue;
+			if (count(barlist.begin(), barlist.end(), bar) == 0) continue;
 
 			Aint_top = hit.Aint_top; // "y"
 			Aint_bot = hit.Aint_bot; // "x"

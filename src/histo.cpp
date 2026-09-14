@@ -615,9 +615,13 @@ void histo::Fill() {
 		texneuthit.PSD_top = texneut.get_PSD(i, "top");
 		texneuthit.PSD_bot = texneut.get_PSD(i, "bot");
 		texneuthit.PSD = texneut.get_PSD(i, "pre");
+		texneuthit.Lnorm = texneut.get_Lnorm(i);
+		texneuthit.Rshift = texneut.get_Rshift(i);
 		texneuthit.E_top = texneut.get_E(i, "top");
 		texneuthit.E_bot = texneut.get_E(i, "bot");
 		texneuthit.E_tot = texneut.get_E(i, "pre");
+		texneuthit.isSaturated = texneut.get_isSaturated(i);
+		texneuthit.outsideMinBoundary = texneut.get_outsideMinBoundary(i);
 
 		// NOTE: Here, reorder the Cartesian axes from TexAT coordinates (Z up) to standard beam physics coordinates (Z beam axis)
 		// See TNLIB detector.cpp for more details, this also swaps from a right handed to a left handed coordinate system
@@ -648,8 +652,8 @@ void histo::Fill() {
 	vector<int> bars = texneut.get_barshit();
 	vector<double> x = texneut.get_hitcoord(0);
 	vector<double> y = texneut.get_hitcoord(1);
-	vector<int> Aint_top = texneut.get_Aint("top");
-	vector<int> Aint_bottom = texneut.get_Aint("bot");
+	vector<double> Aint_top = texneut.get_Aint("top");
+	vector<double> Aint_bottom = texneut.get_Aint("bot");
 	for (int i = 0; i < texneut.get_coupledhits(); i++) {
 		topDownMap->Fill(x[i], y[i]);
 		if (bars[i] == 0)

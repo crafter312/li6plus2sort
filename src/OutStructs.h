@@ -10,15 +10,19 @@ namespace OutStructs {
 		int bar;                // bar number (see TNLIB detector.cpp)
 		int chip_top, chip_bot; // PSD chip numbers for top and bottom PMTs
 		int chan_top, chan_bot; // PSD channel numbers for top and bottom PMTs
-		int Aint_top, Aint_bot, Bint_top, Bint_bot, Cint_top, Cint_bot, Tint_top, Tint_bot; // A, B, C, and T integrals for top and bottom PMTs
+		double Aint_top, Aint_bot, Bint_top, Bint_bot, Cint_top, Cint_bot; // A, B, and C integrals for top and bottom PMTs
+		int Tint_top, Tint_bot;             // integrals for top and bottom PMTs
 		int TDCchannel_top, TDCchannel_bot; // TDC channels for top and bottom PMTs
 		double TDCvalue_top, TDCvalue_bot;  // TDC times for top and bottom PMTs
 		double PSD_top, PSD_bot, PSD;       // top, bottom, and top + bottom PMT PSD parameter
+		double Lnorm, Rshift;               // new finger plot coordinates resulting from coordinate transform (i.e. "straightening" of finger plot)
 		double E_top, E_bot, E_tot;         // A integral + B integral for top, bottom, and top + bottom
 		double xi, yi, zi;                  // p-Terphenyl crystal indices of hit
 		double x, y, z;                     // Cartesian coordinates of neutron hit relative to target center
 		double rho, theta, phi;             // spherical coordinates of neutron hit relative to target center
 		double c_r, c_th;                   // radius and polar angle in top:bot integral space for per-crystal gating (finger plots)
+		bool isSaturated;                   // flag denoting whether one of the PMTs in the hit's bar is in the saturated region or not
+		bool outsideMinBoundary;            // flag denoting when hit is smaller than origin point of finger plot or than minimum outer curve points
 
 		void clear() {
 			bar = -1;
@@ -26,12 +30,12 @@ namespace OutStructs {
 			chip_bot = -1;
 			chan_top = -1;
 			chan_bot = -1;
-			Aint_top = -1;
-			Aint_bot = -1;
-			Bint_top = -1;
-			Bint_bot = -1;
-			Cint_top = -1;
-			Cint_bot = -1;
+			Aint_top = NAN;
+			Aint_bot = NAN;
+			Bint_top = NAN;
+			Bint_bot = NAN;
+			Cint_top = NAN;
+			Cint_bot = NAN;
 			Tint_top = -1;
 			Tint_bot = -1;
 			TDCchannel_top = -1;
@@ -41,6 +45,8 @@ namespace OutStructs {
 			PSD_top = NAN;
 			PSD_bot = NAN;
 			PSD = NAN;
+			Lnorm = NAN;
+			Rshift = NAN;
 			E_top = NAN;
 			E_bot = NAN;
 			E_tot = NAN;
@@ -55,6 +61,8 @@ namespace OutStructs {
 			phi = NAN;
 			c_r = NAN;
 			c_th = NAN;
+			isSaturated = false;
+			outsideMinBoundary = false;
 		}
 	};
 
