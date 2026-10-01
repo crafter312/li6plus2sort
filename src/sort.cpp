@@ -55,7 +55,7 @@ int main() {
 	// TNLIB (Alex's TexNeut library) setup
 	config configFile(sortConfig.GetTnlibConfig());
 	detector texneut;
-	texneut.fillmaps(configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile(), configFile.GetBarTransformsFile(), configFile.GetBarGatesFile());
+	texneut.fillmaps(configFile);
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	string ofname = configFile.GetOutputDir() + sortConfig.GetOfileName();
@@ -98,7 +98,7 @@ int main() {
 		auto f = merger.GetFile();
 
 		// Initialize analysis classes
-		event texneutevent;
+		event texneutevent(configFile);
 		histo Histo(f, texneutevent);
 		Gobbi gobbi(input, Histo, sortConfig, runnum, texneutevent);
 		
@@ -115,7 +115,7 @@ int main() {
 			input.GetTDC().FillTexNeutHitVectors(texneut_tdcchans, texneut_tdcts);
 			const Input::TexNeutInput& texin = input.GetTexNeut();
 			texneutevent.CustomFillNecessary(texin.GetNhits(), texin.chip, texin.chan, texin.a, texin.b, texin.c, texin.t, texneut_tdcchans, texneut_tdcts);
-			texneutevent.analyse(texneut, 1234, Triple());
+			texneutevent.analyse(texneut, 1234, Triple{0., (18.969*2.54) + 8., 0.});
 			
 			// Gobbi analysis
 			gobbi.analyze();
