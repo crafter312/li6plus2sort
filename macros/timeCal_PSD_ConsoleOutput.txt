@@ -1,0 +1,1018 @@
+Irregular time spectrum for (psd_chip==1 && psd_chan==0), saving histogram...
+6 time peaks found:
+	1822 229
+	2070 218
+	1162 18
+	1750 20
+	1786 17
+	2034 20
+Irregular time spectrum for (psd_chip==1 && psd_chan==2), saving histogram...
+5 time peaks found:
+	1950 25
+	1822 22
+	2014 13
+	1990 20
+	1778 14
+Irregular time spectrum for (psd_chip==1 && psd_chan==3), saving histogram...
+4 time peaks found:
+	2042 185
+	1846 105
+	1994 25
+	1818 25
+Irregular time spectrum for (psd_chip==1 && psd_chan==4), saving histogram...
+4 time peaks found:
+	2062 177
+	1866 92
+	2018 26
+	1822 15
+Irregular time spectrum for (psd_chip==1 && psd_chan==5), saving histogram...
+5 time peaks found:
+	2054 123
+	1858 55
+	2010 20
+	1818 11
+	2018 12
+Irregular time spectrum for (psd_chip==1 && psd_chan==6), saving histogram...
+3 time peaks found:
+	2106 258
+	1910 65
+	2066 22
+Irregular time spectrum for (psd_chip==1 && psd_chan==7), saving histogram...
+3 time peaks found:
+	2158 258
+	1962 73
+	2114 16
+Irregular time spectrum for (psd_chip==2 && psd_chan==1), saving histogram...
+3 time peaks found:
+	1838 360
+	2034 336
+	1794 31
+Irregular time spectrum for (psd_chip==2 && psd_chan==2), saving histogram...
+5 time peaks found:
+	1850 227
+	2050 220
+	1998 46
+	1810 23
+	1786 36
+Irregular time spectrum for (psd_chip==2 && psd_chan==4), saving histogram...
+4 time peaks found:
+	2038 59
+	1974 25
+	1838 30
+	1786 7
+Irregular time spectrum for (psd_chip==2 && psd_chan==7), saving histogram...
+3 time peaks found:
+	2110 413
+	1910 48
+	2062 30
+Irregular time spectrum for (psd_chip==3 && psd_chan==0), saving histogram...
+5 time peaks found:
+	1830 172
+	2074 165
+	2038 26
+	1770 19
+	1794 17
+Irregular time spectrum for (psd_chip==3 && psd_chan==1), saving histogram...
+4 time peaks found:
+	2054 74
+	1842 80
+	2002 22
+	1798 21
+Irregular time spectrum for (psd_chip==3 && psd_chan==3), saving histogram...
+5 time peaks found:
+	1914 156
+	1710 93
+	1674 17
+	1878 14
+	1582 12
+Irregular time spectrum for (psd_chip==3 && psd_chan==4), saving histogram...
+3 time peaks found:
+	1978 147
+	1766 74
+	1926 16
+Irregular time spectrum for (psd_chip==3 && psd_chan==5), saving histogram...
+3 time peaks found:
+	2006 125
+	1794 39
+	1958 17
+Irregular time spectrum for (psd_chip==3 && psd_chan==6), saving histogram...
+3 time peaks found:
+	2102 129
+	1890 42
+	2066 28
+Irregular time spectrum for (psd_chip==3 && psd_chan==7), saving histogram...
+3 time peaks found:
+	2034 119
+	1826 31
+	1990 34
+Irregular time spectrum for (psd_chip==4 && psd_chan==0), saving histogram...
+6 time peaks found:
+	2126 111
+	1882 93
+	1846 64
+	2086 45
+	1810 44
+	2054 29
+Irregular time spectrum for (psd_chip==4 && psd_chan==1), saving histogram...
+5 time peaks found:
+	1826 191
+	2030 158
+	1994 29
+	1794 56
+	1770 27
+Irregular time spectrum for (psd_chip==4 && psd_chan==3), saving histogram...
+5 time peaks found:
+	1990 118
+	1786 55
+	1954 65
+	1754 40
+	1922 27
+Irregular time spectrum for (psd_chip==4 && psd_chan==5), saving histogram...
+3 time peaks found:
+	2022 220
+	1822 75
+	1986 59
+Irregular time spectrum for (psd_chip==4 && psd_chan==6), saving histogram...
+3 time peaks found:
+	2122 214
+	2086 52
+	1918 46
+Irregular time spectrum for (psd_chip==4 && psd_chan==7), saving histogram...
+3 time peaks found:
+	2094 215
+	1890 48
+	2062 47
+Irregular time spectrum for (psd_chip==5 && psd_chan==0), saving histogram...
+7 time peaks found:
+	1934 257
+	2174 149
+	2118 33
+	2138 31
+	1878 26
+	2094 22
+	1894 19
+Irregular time spectrum for (psd_chip==5 && psd_chan==1), saving histogram...
+4 time peaks found:
+	1810 415
+	2022 286
+	1954 58
+	2194 63
+Irregular time spectrum for (psd_chip==5 && psd_chan==2), saving histogram...
+6 time peaks found:
+	2034 236
+	1826 298
+	1770 33
+	1998 30
+	1970 22
+	1742 20
+Irregular time spectrum for (psd_chip==5 && psd_chan==3), saving histogram...
+3 time peaks found:
+	2034 289
+	1826 197
+	1986 28
+Irregular time spectrum for (psd_chip==5 && psd_chan==4), saving histogram...
+3 time peaks found:
+	2090 356
+	1874 114
+	2014 29
+Irregular time spectrum for (psd_chip==5 && psd_chan==5), saving histogram...
+3 time peaks found:
+	2090 528
+	1878 99
+	2046 38
+Irregular time spectrum for (psd_chip==6 && psd_chan==2), saving histogram...
+6 time peaks found:
+	1838 322
+	2054 316
+	2018 46
+	1974 28
+	1754 24
+	1786 35
+Irregular time spectrum for (psd_chip==6 && psd_chan==3), saving histogram...
+5 time peaks found:
+	2038 272
+	1822 225
+	1990 37
+	1942 30
+	1754 23
+Irregular time spectrum for (psd_chip==6 && psd_chan==4), saving histogram...
+5 time peaks found:
+	2046 180
+	1830 69
+	1970 18
+	1754 18
+	2006 15
+Irregular time spectrum for (psd_chip==6 && psd_chan==6), saving histogram...
+3 time peaks found:
+	2086 436
+	1870 48
+	2046 30
+Irregular time spectrum for (psd_chip==6 && psd_chan==7), saving histogram...
+10 time peaks found:
+	2114 28
+	1902 3
+	2226 6
+	2062 5
+	2206 5
+	1874 4
+	1758 2
+	1834 2
+	1954 3
+	2278 6
+Irregular time spectrum for (psd_chip==7 && psd_chan==0), saving histogram...
+8 time peaks found:
+	1982 13
+	2042 2
+	2106 2
+	2374 1
+	2174 1
+	1870 18
+	1918 15
+	2330 1
+Irregular time spectrum for (psd_chip==7 && psd_chan==1), saving histogram...
+4 time peaks found:
+	1782 236
+	1726 34
+	1702 30
+	1750 45
+Irregular time spectrum for (psd_chip==7 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1754 165
+	1530 193
+	1714 33
+	2042 19
+Irregular time spectrum for (psd_chip==7 && psd_chan==3), saving histogram...
+5 time peaks found:
+	1750 172
+	1530 131
+	1714 41
+	1678 27
+	1494 15
+Irregular time spectrum for (psd_chip==7 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1794 242
+	1570 169
+	1750 42
+	1522 18
+Irregular time spectrum for (psd_chip==7 && psd_chan==5), saving histogram...
+3 time peaks found:
+	1802 305
+	1574 122
+	1746 66
+Irregular time spectrum for (psd_chip==7 && psd_chan==6), saving histogram...
+4 time peaks found:
+	1898 326
+	1830 81
+	1670 102
+	1794 32
+Irregular time spectrum for (psd_chip==7 && psd_chan==7), saving histogram...
+3 time peaks found:
+	1838 325
+	1778 88
+	1614 80
+Irregular time spectrum for (psd_chip==8 && psd_chan==0), saving histogram...
+7 time peaks found:
+	2046 275
+	1802 453
+	1770 150
+	1718 68
+	1742 69
+	2014 78
+	1966 36
+Irregular time spectrum for (psd_chip==8 && psd_chan==1), saving histogram...
+7 time peaks found:
+	1906 176
+	1690 192
+	1658 72
+	1850 49
+	1822 45
+	1870 48
+	1630 62
+Irregular time spectrum for (psd_chip==8 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1914 425
+	1694 307
+	1654 42
+	1878 49
+Irregular time spectrum for (psd_chip==8 && psd_chan==3), saving histogram...
+6 time peaks found:
+	1894 287
+	1674 170
+	1842 36
+	1642 30
+	1826 30
+	1610 19
+Irregular time spectrum for (psd_chip==8 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1914 227
+	1694 122
+	1878 39
+	1650 18
+Irregular time spectrum for (psd_chip==8 && psd_chan==5), saving histogram...
+5 time peaks found:
+	1914 166
+	1874 65
+	1694 66
+	1826 36
+	1654 21
+Irregular time spectrum for (psd_chip==8 && psd_chan==6), saving histogram...
+3 time peaks found:
+	2018 374
+	1802 85
+	1982 42
+Irregular time spectrum for (psd_chip==8 && psd_chan==7), saving histogram...
+3 time peaks found:
+	2018 374
+	1802 85
+	1982 42
+Time spectrum fit non-minimizer error for (psd_chip==8 && psd_chan==7), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==0), saving histogram...
+1 time peaks found:
+	1630 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==0), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==1), saving histogram...
+1 time peaks found:
+	1630 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==1), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==2), saving histogram...
+1 time peaks found:
+	1630 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==2), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==3), saving histogram...
+1 time peaks found:
+	1790 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==3), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==4), saving histogram...
+1 time peaks found:
+	1790 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==4), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==5), saving histogram...
+1 time peaks found:
+	1790 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==5), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==6), saving histogram...
+1 time peaks found:
+	1790 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==6), skipping...
+Irregular time spectrum for (psd_chip==9 && psd_chan==7), saving histogram...
+1 time peaks found:
+	2030 1
+Less than two time spectrum peaks for (psd_chip==9 && psd_chan==7), skipping...
+Irregular time spectrum for (psd_chip==10 && psd_chan==0), saving histogram...
+5 time peaks found:
+	2114 4
+	2190 3
+	2174 2
+	2062 1
+	2210 2
+Irregular time spectrum for (psd_chip==10 && psd_chan==1), saving histogram...
+7 time peaks found:
+	2122 60
+	2322 60
+	2082 14
+	2290 28
+	2058 10
+	2262 13
+	2426 5
+Irregular time spectrum for (psd_chip==10 && psd_chan==2), saving histogram...
+7 time peaks found:
+	2122 60
+	2322 60
+	2082 14
+	2290 28
+	2058 10
+	2262 13
+	2426 5
+Time spectrum fit non-minimizer error for (psd_chip==10 && psd_chan==2), skipping...
+Irregular time spectrum for (psd_chip==10 && psd_chan==3), saving histogram...
+4 time peaks found:
+	2290 72
+	2094 63
+	2250 6
+	2222 6
+Irregular time spectrum for (psd_chip==10 && psd_chan==4), saving histogram...
+5 time peaks found:
+	2278 65
+	2082 38
+	2210 13
+	2242 22
+	2018 8
+Irregular time spectrum for (psd_chip==10 && psd_chan==5), saving histogram...
+8 time peaks found:
+	2302 26
+	2258 22
+	2042 9
+	2106 9
+	2070 5
+	2174 4
+	2350 3
+	2410 2
+Irregular time spectrum for (psd_chip==10 && psd_chan==6), saving histogram...
+10 time peaks found:
+	2374 2
+	2290 2
+	2558 1
+	1994 1
+	2102 1
+	2338 1
+	2274 1
+	2014 1
+	2062 3
+	2514 2
+Irregular time spectrum for (psd_chip==10 && psd_chan==7), saving histogram...
+6 time peaks found:
+	2142 12
+	2342 13
+	2282 2
+	2086 1
+	2106 1
+	2214 1
+Irregular time spectrum for (psd_chip==11 && psd_chan==0), saving histogram...
+1 time peaks found:
+	2242 1
+Less than two time spectrum peaks for (psd_chip==11 && psd_chan==0), skipping...
+Irregular time spectrum for (psd_chip==11 && psd_chan==5), saving histogram...
+11 time peaks found:
+	2178 3
+	1966 2
+	2222 2
+	1886 1
+	2258 1
+	2406 1
+	1862 1
+	1906 1
+	1930 1
+	2066 2
+	2306 2
+Irregular time spectrum for (psd_chip==11 && psd_chan==7), saving histogram...
+12 time peaks found:
+	2146 1
+	2386 2
+	2202 2
+	2282 2
+	1966 1
+	2022 1
+	2082 1
+	2466 1
+	2434 1
+	2238 1
+	2346 2
+	1922 2
+Irregular time spectrum for (psd_chip==12 && psd_chan==0), saving histogram...
+12 time peaks found:
+	2146 1
+	2386 2
+	2202 2
+	2282 2
+	1966 1
+	2022 1
+	2082 1
+	2466 1
+	2434 1
+	2238 1
+	2346 2
+	1922 2
+Time spectrum fit non-minimizer error for (psd_chip==12 && psd_chan==0), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==1), saving histogram...
+1 time peaks found:
+	2006 1
+Less than two time spectrum peaks for (psd_chip==12 && psd_chan==1), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==3), saving histogram...
+1 time peaks found:
+	1798 75
+Less than two time spectrum peaks for (psd_chip==12 && psd_chan==3), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==4), saving histogram...
+1 time peaks found:
+	1802 133
+Less than two time spectrum peaks for (psd_chip==12 && psd_chan==4), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==5), saving histogram...
+1 time peaks found:
+	1858 134
+Less than two time spectrum peaks for (psd_chip==12 && psd_chan==5), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==6), saving histogram...
+1 time peaks found:
+	1858 134
+Less than two time spectrum peaks for (psd_chip==12 && psd_chan==6), skipping...
+Irregular time spectrum for (psd_chip==12 && psd_chan==7), saving histogram...
+6 time peaks found:
+	1726 12
+	1922 15
+	1838 2
+	2078 1
+	1798 1
+	2002 1
+Irregular time spectrum for (psd_chip==13 && psd_chan==0), saving histogram...
+3 time peaks found:
+	1778 345
+	2022 218
+	1982 20
+Irregular time spectrum for (psd_chip==13 && psd_chan==1), saving histogram...
+3 time peaks found:
+	1718 168
+	1938 205
+	1894 17
+Irregular time spectrum for (psd_chip==13 && psd_chan==2), saving histogram...
+3 time peaks found:
+	1730 145
+	1950 133
+	1694 24
+Irregular time spectrum for (psd_chip==13 && psd_chan==3), saving histogram...
+11 time peaks found:
+	1610 6
+	1854 6
+	1818 2
+	2042 5
+	1890 4
+	1670 2
+	1950 2
+	1722 3
+	1758 1
+	1790 5
+	2122 1
+Irregular time spectrum for (psd_chip==13 && psd_chan==4), saving histogram...
+5 time peaks found:
+	1694 123
+	1914 93
+	1658 27
+	1874 15
+	1842 15
+Irregular time spectrum for (psd_chip==13 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1730 150
+	1946 69
+	1678 21
+	1902 12
+Irregular time spectrum for (psd_chip==13 && psd_chan==6), saving histogram...
+3 time peaks found:
+	1770 177
+	1986 71
+	1734 15
+Irregular time spectrum for (psd_chip==13 && psd_chan==7), saving histogram...
+4 time peaks found:
+	1802 165
+	2026 77
+	1754 29
+	1990 24
+Irregular time spectrum for (psd_chip==14 && psd_chan==1), saving histogram...
+4 time peaks found:
+	1866 404
+	2078 241
+	1822 31
+	2038 32
+Irregular time spectrum for (psd_chip==14 && psd_chan==2), saving histogram...
+3 time peaks found:
+	1854 385
+	2062 184
+	1790 24
+Irregular time spectrum for (psd_chip==14 && psd_chan==4), saving histogram...
+3 time peaks found:
+	1874 320
+	2086 99
+	2046 53
+Irregular time spectrum for (psd_chip==14 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1894 226
+	2106 87
+	1850 20
+	2058 21
+Irregular time spectrum for (psd_chip==14 && psd_chan==6), saving histogram...
+5 time peaks found:
+	1902 278
+	2114 97
+	1850 19
+	2082 16
+	2038 16
+Irregular time spectrum for (psd_chip==14 && psd_chan==7), saving histogram...
+8 time peaks found:
+	1878 2
+	1806 1
+	2010 2
+	2086 1
+	2030 2
+	1770 1
+	1850 1
+	2042 1
+Irregular time spectrum for (psd_chip==15 && psd_chan==0), saving histogram...
+4 time peaks found:
+	1726 139
+	1970 108
+	1686 50
+	1930 22
+Irregular time spectrum for (psd_chip==15 && psd_chan==1), saving histogram...
+5 time peaks found:
+	1618 164
+	1838 127
+	1798 17
+	1762 12
+	1586 31
+Irregular time spectrum for (psd_chip==15 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1622 171
+	1834 89
+	1578 32
+	1794 12
+Irregular time spectrum for (psd_chip==15 && psd_chan==3), saving histogram...
+9 time peaks found:
+	1814 24
+	1594 30
+	1626 6
+	1774 7
+	1850 5
+	1546 6
+	1650 5
+	1962 4
+	1982 7
+Irregular time spectrum for (psd_chip==15 && psd_chan==5), saving histogram...
+3 time peaks found:
+	1606 150
+	1830 89
+	1566 15
+Irregular time spectrum for (psd_chip==15 && psd_chan==6), saving histogram...
+4 time peaks found:
+	1686 124
+	1906 69
+	1638 18
+	1854 8
+Irregular time spectrum for (psd_chip==15 && psd_chan==7), saving histogram...
+4 time peaks found:
+	1686 153
+	1910 95
+	1646 10
+	1862 9
+Irregular time spectrum for (psd_chip==16 && psd_chan==0), saving histogram...
+3 time peaks found:
+	2010 179
+	1962 50
+	1930 26
+Irregular time spectrum for (psd_chip==16 && psd_chan==1), saving histogram...
+4 time peaks found:
+	1962 261
+	2162 182
+	1922 24
+	2126 22
+Irregular time spectrum for (psd_chip==16 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1942 114
+	2146 83
+	1910 32
+	2102 27
+Time spectrum fit failed for (psd_chip==16 && psd_chan==2), skipping and saving histogram...
+Irregular time spectrum for (psd_chip==16 && psd_chan==3), saving histogram...
+4 time peaks found:
+	1906 162
+	2106 116
+	1866 33
+	2074 19
+Irregular time spectrum for (psd_chip==16 && psd_chan==4), saving histogram...
+5 time peaks found:
+	1970 118
+	2170 84
+	1930 29
+	2138 22
+	2118 16
+Irregular time spectrum for (psd_chip==16 && psd_chan==5), saving histogram...
+3 time peaks found:
+	1954 163
+	2158 93
+	1914 33
+Irregular time spectrum for (psd_chip==16 && psd_chan==6), saving histogram...
+4 time peaks found:
+	2014 166
+	2218 65
+	1974 19
+	2186 18
+Irregular time spectrum for (psd_chip==16 && psd_chan==7), saving histogram...
+7 time peaks found:
+	2198 10
+	1998 13
+	1898 7
+	1958 4
+	2162 3
+	2142 3
+	2098 2
+Irregular time spectrum for (psd_chip==17 && psd_chan==0), saving histogram...
+3 time peaks found:
+	1982 42
+	1902 12
+	1938 8
+Irregular time spectrum for (psd_chip==17 && psd_chan==3), saving histogram...
+3 time peaks found:
+	1910 191
+	1706 306
+	1662 28
+Irregular time spectrum for (psd_chip==17 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1650 184
+	1854 127
+	1810 16
+	1614 16
+Irregular time spectrum for (psd_chip==17 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1714 240
+	1918 126
+	1870 18
+	1670 26
+Irregular time spectrum for (psd_chip==18 && psd_chan==3), saving histogram...
+3 time peaks found:
+	1858 169
+	1650 289
+	1810 19
+Irregular time spectrum for (psd_chip==18 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1662 244
+	1874 144
+	1826 33
+	1622 21
+Irregular time spectrum for (psd_chip==18 && psd_chan==6), saving histogram...
+6 time peaks found:
+	1714 74
+	1930 37
+	1754 9
+	1674 7
+	1970 5
+	1778 11
+Irregular time spectrum for (psd_chip==19 && psd_chan==0), saving histogram...
+4 time peaks found:
+	1986 157
+	1746 207
+	1954 18
+	1706 17
+Irregular time spectrum for (psd_chip==19 && psd_chan==1), saving histogram...
+5 time peaks found:
+	1766 194
+	1966 181
+	1734 50
+	1602 19
+	1930 30
+Irregular time spectrum for (psd_chip==19 && psd_chan==2), saving histogram...
+3 time peaks found:
+	1766 178
+	1962 83
+	1734 36
+Irregular time spectrum for (psd_chip==19 && psd_chan==3), saving histogram...
+3 time peaks found:
+	1926 158
+	1730 271
+	1698 51
+Irregular time spectrum for (psd_chip==19 && psd_chan==4), saving histogram...
+3 time peaks found:
+	1758 146
+	1958 123
+	1710 25
+Irregular time spectrum for (psd_chip==19 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1790 171
+	1990 145
+	1746 23
+	1958 17
+Time spectrum fit failed for (psd_chip==19 && psd_chan==5), skipping and saving histogram...
+Irregular time spectrum for (psd_chip==19 && psd_chan==6), saving histogram...
+4 time peaks found:
+	2050 126
+	1846 119
+	1786 40
+	2002 19
+Irregular time spectrum for (psd_chip==19 && psd_chan==7), saving histogram...
+5 time peaks found:
+	1822 145
+	2022 45
+	1774 45
+	1982 15
+	1954 14
+Irregular time spectrum for (psd_chip==20 && psd_chan==0), saving histogram...
+8 time peaks found:
+	1754 134
+	1998 119
+	1706 70
+	1674 76
+	1650 55
+	1950 42
+	1914 29
+	1894 32
+Irregular time spectrum for (psd_chip==20 && psd_chan==1), saving histogram...
+6 time peaks found:
+	1738 143
+	1698 75
+	1946 111
+	1906 50
+	1650 31
+	1858 31
+Irregular time spectrum for (psd_chip==20 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1690 189
+	1898 180
+	1654 44
+	1858 29
+Irregular time spectrum for (psd_chip==20 && psd_chan==3), saving histogram...
+6 time peaks found:
+	1674 143
+	1882 125
+	1638 43
+	1614 23
+	1838 21
+	1578 14
+Irregular time spectrum for (psd_chip==20 && psd_chan==4), saving histogram...
+3 time peaks found:
+	1910 112
+	1706 276
+	1670 27
+Irregular time spectrum for (psd_chip==20 && psd_chan==5), saving histogram...
+5 time peaks found:
+	1710 195
+	1918 163
+	1670 36
+	1874 18
+	1634 19
+Irregular time spectrum for (psd_chip==20 && psd_chan==6), saving histogram...
+5 time peaks found:
+	1710 195
+	1918 163
+	1670 36
+	1874 18
+	1634 19
+Time spectrum fit non-minimizer error for (psd_chip==20 && psd_chan==6), skipping...
+Irregular time spectrum for (psd_chip==20 && psd_chan==7), saving histogram...
+5 time peaks found:
+	1786 143
+	1730 61
+	1990 52
+	1698 43
+	1934 26
+Irregular time spectrum for (psd_chip==21 && psd_chan==0), saving histogram...
+6 time peaks found:
+	1730 22
+	1946 17
+	1978 10
+	1686 16
+	1910 8
+	1878 6
+Irregular time spectrum for (psd_chip==21 && psd_chan==1), saving histogram...
+3 time peaks found:
+	1662 379
+	1878 267
+	1622 26
+Irregular time spectrum for (psd_chip==21 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1862 177
+	1650 322
+	1606 25
+	1826 20
+Irregular time spectrum for (psd_chip==21 && psd_chan==3), saving histogram...
+5 time peaks found:
+	1662 159
+	1878 87
+	1614 35
+	1842 21
+	1570 17
+Irregular time spectrum for (psd_chip==21 && psd_chan==4), saving histogram...
+5 time peaks found:
+	1678 112
+	1890 53
+	1630 42
+	1858 21
+	1834 18
+Irregular time spectrum for (psd_chip==21 && psd_chan==5), saving histogram...
+3 time peaks found:
+	1690 270
+	1906 108
+	1650 24
+Irregular time spectrum for (psd_chip==21 && psd_chan==6), saving histogram...
+5 time peaks found:
+	1722 34
+	1686 9
+	1934 9
+	2022 2
+	1758 5
+Irregular time spectrum for (psd_chip==21 && psd_chan==7), saving histogram...
+3 time peaks found:
+	1882 1
+	1714 1
+	1982 2
+Irregular time spectrum for (psd_chip==22 && psd_chan==0), saving histogram...
+3 time peaks found:
+	1794 245
+	1754 22
+	1730 17
+Irregular time spectrum for (psd_chip==22 && psd_chan==1), saving histogram...
+3 time peaks found:
+	1558 289
+	1762 195
+	1514 23
+Irregular time spectrum for (psd_chip==22 && psd_chan==2), saving histogram...
+5 time peaks found:
+	1486 140
+	1690 160
+	1442 24
+	1622 16
+	1642 27
+Irregular time spectrum for (psd_chip==22 && psd_chan==3), saving histogram...
+6 time peaks found:
+	1502 66
+	1702 41
+	1462 34
+	1438 19
+	1674 28
+	1630 16
+Irregular time spectrum for (psd_chip==22 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1554 191
+	1754 126
+	1518 15
+	1714 16
+Irregular time spectrum for (psd_chip==22 && psd_chan==6), saving histogram...
+3 time peaks found:
+	1586 194
+	1794 138
+	1546 16
+Irregular time spectrum for (psd_chip==22 && psd_chan==7), saving histogram...
+7 time peaks found:
+	1582 23
+	1786 14
+	1714 3
+	1842 3
+	1470 2
+	1502 2
+	1750 3
+Irregular time spectrum for (psd_chip==23 && psd_chan==0), saving histogram...
+4 time peaks found:
+	1950 1
+	1810 1
+	1718 1
+	1754 1
+Irregular time spectrum for (psd_chip==23 && psd_chan==1), saving histogram...
+3 time peaks found:
+	1618 346
+	1834 222
+	1790 29
+Irregular time spectrum for (psd_chip==23 && psd_chan==2), saving histogram...
+4 time peaks found:
+	1602 369
+	1814 107
+	1558 37
+	1774 25
+Irregular time spectrum for (psd_chip==23 && psd_chan==3), saving histogram...
+3 time peaks found:
+	1610 367
+	1822 142
+	1566 24
+Irregular time spectrum for (psd_chip==23 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1638 275
+	1858 172
+	1594 27
+	1818 17
+Irregular time spectrum for (psd_chip==23 && psd_chan==6), saving histogram...
+7 time peaks found:
+	1554 1
+	1854 1
+	1774 1
+	1978 1
+	1662 1
+	1726 1
+	2046 1
+Irregular time spectrum for (psd_chip==23 && psd_chan==7), saving histogram...
+7 time peaks found:
+	1662 28
+	1618 7
+	1906 5
+	1702 6
+	1878 5
+	1786 4
+	1554 2
+Irregular time spectrum for (psd_chip==24 && psd_chan==1), saving histogram...
+4 time peaks found:
+	2010 174
+	1810 280
+	1766 39
+	1970 22
+Irregular time spectrum for (psd_chip==24 && psd_chan==2), saving histogram...
+3 time peaks found:
+	1810 231
+	2014 201
+	1774 21
+Irregular time spectrum for (psd_chip==24 && psd_chan==4), saving histogram...
+4 time peaks found:
+	1814 183
+	2014 88
+	1770 18
+	1970 14
+Irregular time spectrum for (psd_chip==24 && psd_chan==5), saving histogram...
+4 time peaks found:
+	1822 165
+	2026 124
+	1782 28
+	1982 11
+Irregular time spectrum for (psd_chip==24 && psd_chan==6), saving histogram...
+4 time peaks found:
+	1878 121
+	2082 89
+	1838 31
+	2038 12
+Irregular time spectrum for (psd_chip==24 && psd_chan==7), saving histogram...
+5 time peaks found:
+	2006 3
+	2034 2
+	1790 2
+	2082 1
+	1894 1
+Time spectrum fit failed for (psd_chip==24 && psd_chan==7), skipping and saving histogram...

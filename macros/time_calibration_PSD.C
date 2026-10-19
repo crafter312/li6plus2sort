@@ -60,11 +60,11 @@ struct Progress {
 	}
 };
 
-void time_calibration() {
+void time_calibration_PSD() {
 
 	// Read file and TTree
 	string path = "../RootFiles/";
-	string ifname = "run-446-par";
+	string ifname = "run-624-par";
 	size_t numentries;
 	TFile *file = TFile::Open((path + ifname + ".root").c_str());
 	if (!file || file->IsZombie()) {
@@ -75,7 +75,7 @@ void time_calibration() {
 	// Check if tree exists in the file
 	TTree *tree = (TTree*)file->Get("tpar");
 	if (!tree) {
-		std::cerr << "Tree 't' not found in the file!" << std::endl;
+		std::cerr << "Tree 'tpar' not found in the file!" << std::endl;
 		file->Close();
 		return;
 	}
@@ -83,7 +83,7 @@ void time_calibration() {
 	cout << "Total entries in tree: " << numentries << endl;
 
 	// Macro parameters
-	size_t max_channels = pow(2, 14); // 16384, max time channels from HINP
+	size_t max_channels = pow(2, 13); // 8192, max time channels from PSD
 	size_t fit_bins = 600; // number of bins in histogram to fit
 	double sigma = 10.; // starting sigma for fit
 	double cutoff = 15000; // manually set cutoff for erroneous peaks at high time values (handfull of channels have one peak like this)
@@ -107,29 +107,15 @@ void time_calibration() {
 	TCanvas* c = new TCanvas("c", "Canvas", 800, 600);
 
 	// Files to save results
-	string frontName = "FrontTimecalPulser.txt";
-	ofstream oFrontFile(frontName);
-  if (!oFrontFile.is_open()) {
-    cerr << "*WARNING* Unable to create E front time calibration file " << frontName << endl;
-    abort();
-  }
-
-	string backName = "BackTimecalPulser.txt";
-	ofstream oBackFile(backName);
-  if (!oBackFile.is_open()) {
-    cerr << "*WARNING* Unable to create E back time calibration file " << backName << endl;
-    abort();
-  }
-
-	string deltaName = "DeltaTimecalPulser.txt";
-	ofstream oDeltaFile(deltaName);
-  if (!oDeltaFile.is_open()) {
-    cerr << "*WARNING* Unable to create delta E time calibration file " << deltaName << endl;
+	string tnName = "TNTimecalPulser.txt";
+	ofstream oTnFile(tnName);
+  if (!oTnFile.is_open()) {
+    cerr << "*WARNING* Unable to create TexNeut time calibration file " << tnName << endl;
     abort();
   }
 
 	// File for error messages
-	string ename = "timeCal_ConsoleOutput.txt";
+	string ename = "timeCal_PSD_ConsoleOutput.txt";
 	ofstream eofile(ename);
   if (!eofile.is_open()) {
     cerr << "*WARNING* Unable to create console output file " << ename << endl;
@@ -137,10 +123,12 @@ void time_calibration() {
   }
 
 	// Progress bar setup
-	size_t boards = 12; // # boards to loop through (12 for full HINP crate)
-	size_t channels = 32; // # channels per board, should be 32
+	size_t boards = 12; // # boards to loop through (each PSD board has 2 chips)
+	size_t chips = boards*2;
+	size_t channels = 8; // # channels per chip, should be 8, for 16 per board
+
 	Progress pbar;
-	pbar.SetRange(0, boards * channels);
+	pbar.SetRange(0, chips * channels);
 
 	// Loop through boards/channels to fit time peaks
 	TH1I hist("hist", "hist", max_channels/4, 0, max_channels);
@@ -150,12 +138,12 @@ void time_calibration() {
 	size_t i1, i2;
 	double a1, a2;
 	bool hasErrors = false;
-	for (size_t b = 1; b < boards + 1; b++) {
+	for (size_t b = 1; b < chips + 1; b++) {
 		for (size_t ch = 0; ch < channels; ch++) {
 
 			// Draw histogram
-			gate = "board==" + to_string(b) + " && chan==" + to_string(ch);
-			tree->Draw("t>>hist", gate.c_str(), "goff");
+			gate = "psd_chip==" + to_string(b) + " && psd_chan==" + to_string(ch);
+			tree->Draw("psd_t>>hist", gate.c_str(), "goff");
 
 			// Find peaks
 			peakfinder.Search(&hist);
@@ -173,7 +161,7 @@ void time_calibration() {
 				
 				if (npeaks < 2) {
 					eofile << "Less than two time spectrum peaks for (" << gate << "), skipping..." << endl;
-					c->SaveAs(("histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
+					c->SaveAs(("psd_timecal_plots/histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
 					hasErrors = true;
 					pbar.Increment(1);
 					continue; // need at least two peaks for fit
@@ -198,7 +186,7 @@ void time_calibration() {
 			}
 			if ((a1 == 0.) || (a2 == 0.)) {
 				eofile << "No two valid time spectrum peaks found for (" << gate << "), skipping..." << endl;
-				c->SaveAs(("histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
+				c->SaveAs(("psd_timecal_plots/histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
 				hasErrors = true;
 				pbar.Increment(1);
 				continue;
@@ -229,7 +217,7 @@ void time_calibration() {
 				hist.Draw();
 				hist.GetXaxis()->SetRangeUser(min, max);
 				fit.Draw("same");
-				c->SaveAs(("histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
+				c->SaveAs(("psd_timecal_plots/histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
 				pbar.Increment(1);
 				hasErrors = true;
 				continue;
@@ -242,20 +230,12 @@ void time_calibration() {
 			}
 
 			// Output to files
-			double slope = abs(fit.GetParameter(1) - fit.GetParameter(4)) / 20.; // divide by 20 ns, the length of cable used for the time calibration run
-			size_t quad;
-			if ((b == 1) || (b == 3) || (b == 5) || (b == 7)) {
-				quad = (b - 1) / 2;
-				oFrontFile << quad << " " << ch << " " << slope << " " << 0 << endl;
-			}
-			else if ((b == 2) || (b == 4) || (b == 6) || (b == 8)) {
-				quad = (b / 2) - 1;
-				oBackFile << quad << " " << ch << " " << slope << " " << 0 << endl;
-			}
-			else if ((b == 9) || (b == 10) || (b == 11) || (b == 12)) {
-				quad = b - 9;
-				oDeltaFile << quad << " " << ch << " " << slope << " " << 0 << endl;
-			}
+			double slope = abs(fit.GetParameter(1) - fit.GetParameter(4)) / 10.; // divide by 10 ns, the length of cable used for the TexNeut time calibration run
+			oTnFile << b << " " << ch << " " << slope << " " << 0 << endl;
+			hist.Draw();
+			hist.GetXaxis()->SetRangeUser(min, max);
+			fit.Draw("same");
+			c->SaveAs(("psd_timecal_plots/histogram_" + to_string(b) + "-" + to_string(ch) + ".png").c_str());
 
 			// Increment progress bar
 			pbar.Increment(1);
@@ -267,8 +247,6 @@ void time_calibration() {
 		cout << "Time calibration errors present, channels skipped. See " + ename + " for detailed output." << endl;
 
 	eofile.close();
-	oDeltaFile.close();
-	oBackFile.close();
-	oFrontFile.close();
+	oTnFile.close();
 	file->Close();
 }

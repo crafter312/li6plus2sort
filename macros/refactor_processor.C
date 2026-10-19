@@ -52,9 +52,9 @@ vector<string> generate_column_names_psd(const string& parname) {
 void refactor_processor() {
 
 	// Get number of entries from input file
-	string iprefix = "run-562";
-	string path = "../../SpecTcl_6Liplus2IAS/";
-	string outpath = "../../data/";
+	string iprefix = "run-624";
+	string path = "../RootFiles/";
+	string outpath = "../RootFiles/";
 	size_t numentries;
 	{
 		TFile *file = TFile::Open((path + iprefix + ".root").c_str());
