@@ -55,7 +55,7 @@ void PlotFancyHist(string tname, string params, string gate, string options, str
 
 	// Macro constants
 	string ifdir  = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/RootFiles/";
-	string ifname = "sort_all.root";
+	string ifname = "sort_all_tcal.root";
 
 	// Set default style attributes
 	TStyle* Sty = new TStyle("MyStyle", "MyStyle");

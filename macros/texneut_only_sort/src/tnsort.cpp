@@ -52,7 +52,7 @@ int main() {
 	// TNLIB (Alex's TexNeut library) setup
 	config configFile("../../" + sortConfig.GetTnlibConfig());
 	detector texneut;
-	texneut.fillmaps("../../" + configFile.GetExpInfoDir(), configFile.GetBarMapFile(), configFile.GetPosMapFile(), configFile.GetGainFile());
+	texneut.fillmaps(configFile, "../../");
 
 	// Create the TBufferMerger: this class orchestrates the parallel writing to an output ROOT file
 	string ofname = configFile.GetOutputDir() + sortConfig.GetOfileName();
@@ -87,7 +87,7 @@ int main() {
 		auto f = merger.GetFile();
 
 		// Initialize analysis class
-		event texneutevent;
+		event texneutevent(configFile);
 		histo Histo(f, texneutevent);
 		
 		// Thread-local event loop
