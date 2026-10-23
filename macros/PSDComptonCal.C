@@ -69,12 +69,9 @@ void PSDComptonCal(const char* filename = "sort_TexNeut_137Cs_cal_UPDATED.root")
 			c_fits->cd(crystal + 1);
 
 			// Create and fill histogram
-			TString hname = TString::Format("h_time_bar%zu_crystal%zu", bar, crystal);
-			TH1I *h = new TH1I(
-				hname,
-				TString::Format("Crystal = %zu; E_{tot} (arb. units); Counts per bin", crystal), 
-				600, 0, 7500
-			);
+			TString hname  = TString::Format("h_time_bar%zu_crystal%zu", bar, crystal);
+			TString htitle = TString::Format("Crystal = %zu; E_{tot} (arb. units); Counts per bin", crystal);
+			TH1I *h = new TH1I(hname, htitle, 600, 0, 7500);
 
 			TString expr = TString::Format("texneut.E_tot>>%s", hname.Data());
 			TString cut  = TString::Format("texneut.bar==%zu && texneut.yi==%zu", bar, crystal);
