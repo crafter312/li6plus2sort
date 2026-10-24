@@ -67,7 +67,7 @@ void DrawPSDGates(const char* filename = "sort_all_tcal.root") {
 
 			// Create histogram and fill
 			TString hname  = TString::Format("h_psd_bar%zu_crystal%zu", bar, crystal);
-			TString htitle = TString::Format("Bar %zu, Crystal %zu;E_{tot} (KeVee);PSD (tail/peak)", bar, crystal);
+			TString htitle = TString::Format("Bar %zu, Crystal %zu;E_{tot} (keVee);PSD (tail/peak)", bar, crystal);
 			TH2D *h_psd    = new TH2D(hname, htitle, 200, 0, 24000, 200, 0.5, 4);
 			h_psd->SetStats(0); // Hides the statistics box
 			TString pars   = TString::Format("texneut.PSD:texneut.E_tot>>h_psd_bar%zu_crystal%zu", bar, crystal);

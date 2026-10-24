@@ -24,6 +24,23 @@ To build:
 
 Before running the code, make sure to change all of the configuration settings in `sort.config` and `tnlib.config` to the desired values, along with all the other various required input files for the different parts of the code.
 
+# TexNeut analysis macros
+
+There are a number of macros which live inside the **macros/** subdirectory. Here is a list of the important ones in the order that they should be used during an analysis, along with what each one does:
+0. **texneut_only_sort/**: This subdirectory contains a sort code for processing data containing *only* TexNeut data. This is useful for, say, 137Cs calibration data. 
+1. **TNGainMatch.C**: This macro should be run first. It should be run on 137Cs or similar calibration data. This is important so that the events primarily populate the linear low energy region. This macro is used to extract a scaling value to gain match the top and bottom PMTs by converting the finger plot to polar coordinates and then essentially symmetrizing the polar angle about 45 degrees.
+2. **TNGainFileConvert.C**: This macro converts the output of the **TNGainMatch.C** code to a format closer to that which is used by the main sort code.
+3. **TNCrystalGates.C**: This macro is used to mark a saturation cutoff and draw lines around the finger plot (one down the middle and two around the sides). These lines are used by the sort code to calculate a parameter which one can use to more effectively separate the crystals from each other, call it `Lnorm`. This macro also contains a bunch of code which I used to test this initial calculation procedure, but which is now commented out.
+4. **MACRO NOT MADE YET**: This macro is used to set software thresholds for all bars/crystals.
+5. **find_bar_gates.C**: After drawing lines around the finger plots and running the sort code with the results to calculate the new coordinates (primarily `Lnorm`), this macro can then be run to fit a six peak Gaussian fit to each bar's `Lnorm` distribution and calculate an ideal point of separation for each pair of neighboring crystals using the centroids and widths of the peaks for those crystals. The thresholds are used to remove background and improve the fit quality.
+6. **PSDComptonCal.C**: Now that one has the ability to extract the crystal ID of each event, and after running the 137Cs data or similar again through the sort code to get the newest results, one should run this macro to calibrate each crystal's E_tot using the 137Cs Compton edge. Obviously, if one used a different source, one should change the Compton edge value in the macro used for the calibration.
+7. **time_calibration_PSD.C**: This macro is used to perform a time calibration of the PSD times. The TDC times likely do not need this, because they are already calibrated (at least from the TDC we used). The data should be of the standard format "put in a 10 or 20 ns cable half way into the run," such that one has two peaks in the time spectrum that are separated in time by the length of the cable used.
+8. **TDC_Eshift_optimize.C**: This macro is used to calculate an energy offset (i.e. from the integral offsets in the PSD system) per bar by calculating a weighted average of the top and bottom PMT's time values for a bunch of applied arbitrary energy shifts and then looking for the energy shift that minimizes the time resolution of the prompt gamma peak.
+9. **MACRO NOT MADE YET**: This macro is used to calculate time shifts for every crystal to line up the prompt gamma peaks with the expected time of flight for gammas given the distance between the crystal and the center of the target.
+10. **DrawPSDGates.C**: Finally, this macro is used to help draw neutron PSD gates for every crystal.
+
+Wow, you might say, that's a lot of macros! And you'd be right. Maybe there's a better way to do this, idk. But by the time you get through all these steps, you'll have some nice, calibrated TexNeut data with extracted position data, shifted and resolution optimized time information, and neutron/gamma separation. Then you can use this data to, idk, calculate invariant mass or something like that.
+
 # TexNeut input file details
 
 barmap.txt column ordering:

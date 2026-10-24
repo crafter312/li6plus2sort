@@ -18,8 +18,15 @@ using namespace std;
 
 void PSDComptonCal(const char* filename = "sort_TexNeut_137Cs_cal_UPDATED.root") {
 
-	// 1. Manually specify problematic bar numbers to skip
+	// Manually specify problematic bar numbers to skip
 	vector<int> badBars = {31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 51, 78, 80, 86, 87, 95}; // Add your known bad bar indices here
+
+	// Compton edge to use
+	const double photopeak = 662.; // for 137Cs in keV
+	const double emass     = 511.; // electron mass energy in keV
+	double edge = photopeak - (photopeak / (1. + ((photopeak / emass) * 2.)));
+	cout << "Photopeak: " << photopeak << " keV" << endl;
+	cout << "Compton edge: " << edge << " keV" << endl;
 
 	string rootDir = "/home/Li6Webb/Desktop/Li6Plus2IAS/li6plus2sort/";
 	string fname = rootDir + "macros/texneut_only_sort/RootFiles/" + filename;
@@ -74,7 +81,7 @@ void PSDComptonCal(const char* filename = "sort_TexNeut_137Cs_cal_UPDATED.root")
 			TH1I *h = new TH1I(hname, htitle, 600, 0, 7500);
 
 			TString expr = TString::Format("texneut.E_tot>>%s", hname.Data());
-			TString cut  = TString::Format("texneut.bar==%zu && texneut.yi==%zu", bar, crystal);
+			TString cut  = TString::Format("texneut.bar==%zu && texneut.yi==%zu && !texneut.isSaturated && !texneut.outsideMinBoundary", bar, crystal);
 			tree->Draw(expr, cut, "GOFF"); // "GOFF" so we can draw it manually onto the specific pad
 
 			// Center on mean
@@ -143,10 +150,12 @@ void PSDComptonCal(const char* filename = "sort_TexNeut_137Cs_cal_UPDATED.root")
 			h->Fit(f_erfc, "R+");
 
 			// Output results
+			double calslope = edge / f_erfc->GetParameter(1);
 			cout << "--- Compton Edge Fit Results ---" << endl;
 			cout << "Edge Position: " << f_erfc->GetParameter(1) << " +/- " << f_erfc->GetParError(1) << endl;
+			cout << "Calibration slope: " << calslope << " keV/channels(ish)"
 			cout << "Resolution (sigma): " << f_erfc->GetParameter(2) << " +/- " << f_erfc->GetParError(2) << endl;
-			outcal << bar << "\t" << crystal << "\t" << f_erfc->GetParameter(1) << endl;
+			outcal << bar << "\t" << crystal << "\t" << calslope << endl;
 			h->Draw();
 		}
 
