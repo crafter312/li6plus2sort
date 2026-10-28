@@ -59,6 +59,7 @@ void histo::Fill() {
 		texneuthit.E_tot = texneut.get_E(i, "pre");
 		texneuthit.isSaturated = texneut.get_isSaturated(i);
 		texneuthit.outsideMinBoundary = texneut.get_outsideMinBoundary(i);
+		texneuthit.aboveThreshold = texneut.get_aboveThreshold(i);
 
 		// NOTE: Here, reorder the Cartesian axes from TexAT coordinates (Z up) to standard beam physics coordinates (Z beam axis)
 		// See TNLIB detector.cpp for more details, this also swaps from a right handed to a left handed coordinate system

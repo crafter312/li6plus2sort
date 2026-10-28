@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-void find_bar_gates(const char* filename = "sort_all_TNredrawn.root") {
+void find_bar_gates(const char* filename = "sort_all_tcal.root") {
     // 1. Manually specify problematic bar numbers to skip
     std::vector<int> badBars = {31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 51, 78, 80, 86, 87, 95}; // Add your known bad bar indices here
 
@@ -59,7 +59,7 @@ void find_bar_gates(const char* filename = "sort_all_TNredrawn.root") {
 
         // Draw 1D projection for current bar
         TString drawExpr = Form("texneut.Lnorm>>%s", histName.Data());
-        TString cutExpr  = Form("texneut.bar==%d && !texneut.isSaturated", bar);
+        TString cutExpr  = Form("texneut.bar==%d && !texneut.isSaturated && !texneut.outsideMinBoundary && texneut.aboveThreshold", bar);
         tpar->Draw(drawExpr.Data(), cutExpr.Data(), "goff");
 
         // Use TSpectrum to identify the 6 peak positions along Y-axis projection

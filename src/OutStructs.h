@@ -23,6 +23,7 @@ namespace OutStructs {
 		double c_r, c_th;                   // radius and polar angle in top:bot integral space for per-crystal gating (finger plots)
 		bool isSaturated;                   // flag denoting whether one of the PMTs in the hit's bar is in the saturated region or not
 		bool outsideMinBoundary;            // flag denoting when hit is smaller than origin point of finger plot or than minimum outer curve points
+		bool aboveThreshold;                // flag denoting whether a hit's total energy is above the software threshold for that bar or not
 
 		void clear() {
 			bar = -1;
@@ -63,6 +64,7 @@ namespace OutStructs {
 			c_th = NAN;
 			isSaturated = false;
 			outsideMinBoundary = false;
+			aboveThreshold = true;
 		}
 	};
 
